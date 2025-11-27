@@ -277,7 +277,18 @@ const Index = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="group cursor-pointer transition-opacity duration-200 hover:opacity-100 opacity-90"
+                        className="group cursor-pointer transition-all duration-300 hover:opacity-100 opacity-90 rounded-lg px-3 py-2 -mx-3 -my-2"
+                        style={{
+                          transition: "all 0.3s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${entry.color}15`;
+                          e.currentTarget.style.borderLeft = `3px solid ${entry.color}`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.borderLeft = "3px solid transparent";
+                        }}
                         onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
                       >
                         {editingMomentId === entry.id ? (
