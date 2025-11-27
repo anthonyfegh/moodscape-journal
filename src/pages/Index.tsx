@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
-import { ReadingSidebar } from "@/components/ReadingSidebar";
+import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
 import { toast } from "sonner";
 import { Save, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,30 +24,21 @@ const Index = () => {
   const [personaState, setPersonaState] = useState("neutral");
   const [wordFrequency, setWordFrequency] = useState<Map<string, number>>(new Map());
   const [recentWords, setRecentWords] = useState<string[]>([]);
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [lastMoodColor, setLastMoodColor] = useState("#4ade80");
+  const [isThinking, setIsThinking] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [isClearing, setIsClearing] = useState(false);
 
-  // Show/hide sidebar based on triggers
+  // Hide thought bubble after inactivity
   useEffect(() => {
-    if (moodColor !== lastMoodColor || memoryBubble) {
-      setSidebarVisible(true);
-      setLastMoodColor(moodColor);
-    }
-  }, [moodColor, memoryBubble, lastMoodColor]);
-
-  // Hide sidebar after inactivity
-  useEffect(() => {
-    if (!sidebarVisible) return;
+    if (!isThinking) return;
     
     const timer = setTimeout(() => {
-      setSidebarVisible(false);
-    }, 8000);
+      setIsThinking(false);
+    }, 5000);
 
     return () => clearTimeout(timer);
-  }, [sidebarVisible, text]);
+  }, [isThinking, text]);
 
   // Analyze text and update mood
   const analyzeMood = useCallback((content: string) => {
@@ -125,7 +116,7 @@ const Index = () => {
 
       if (completedWords.length > 0) {
         setRecentWords(completedWords);
-        setSidebarVisible(true);
+        setIsThinking(true);
       }
 
       if (newText.length > 10) {
@@ -202,7 +193,7 @@ const Index = () => {
     setMicroComments([]);
     setMemoryBubble(null);
     setRecentWords([]);
-    setSidebarVisible(false);
+    setIsThinking(false);
   };
 
   return (
@@ -212,8 +203,8 @@ const Index = () => {
         backgroundColor: `${moodColor}08`,
       }}
     >
-      <ReadingSidebar 
-        isVisible={sidebarVisible}
+      <PersonaWithThoughts 
+        isThinking={isThinking}
         recentWords={recentWords}
         moodColor={moodColor}
         personaState={personaState}
