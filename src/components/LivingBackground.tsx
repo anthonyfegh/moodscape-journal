@@ -6,50 +6,51 @@ interface LivingBackgroundProps {
 }
 
 export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
-  // Generate color variations for tie-dye effect
-  const colorVariations = useMemo(() => {
-    // Convert hex to RGB
+  // Simpler tie-dye: gentle watercolor wash
+  const backgroundGradients = useMemo(() => {
     const hex = moodColor.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Create variations: lighter, darker, more saturated, less saturated
-    const variations = [
-      `rgba(${r}, ${g}, ${b}, 0.15)`, // base soft
-      `rgba(${Math.min(r + 40, 255)}, ${Math.min(g + 40, 255)}, ${Math.min(b + 40, 255)}, 0.12)`, // lighter
-      `rgba(${Math.max(r - 30, 0)}, ${Math.max(g - 30, 0)}, ${Math.max(b - 30, 0)}, 0.18)`, // darker
-      `rgba(${Math.min(r + 20, 255)}, ${g}, ${b}, 0.1)`, // warmer
-      `rgba(${r}, ${Math.min(g + 20, 255)}, ${Math.min(b + 20, 255)}, 0.13)`, // cooler
+    return [
+      `rgba(${r}, ${g}, ${b}, 0.08)`,
+      `rgba(${Math.min(r + 30, 255)}, ${Math.min(g + 30, 255)}, ${Math.min(b + 30, 255)}, 0.06)`,
+      `rgba(${Math.max(r - 20, 0)}, ${Math.max(g - 20, 0)}, ${Math.max(b - 20, 0)}, 0.07)`,
     ];
-
-    return variations;
   }, [moodColor]);
 
-  // Glow color (more intense version)
-  const glowColor = useMemo(() => {
+  // Comet glow: saturated, concentrated emotion
+  const cometColors = useMemo(() => {
     const hex = moodColor.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, 0.25)`;
+
+    // Boost saturation by pushing values toward their extremes
+    const boost = (val: number) => {
+      const mid = 127;
+      return val > mid ? Math.min(val + 50, 255) : Math.max(val - 30, 0);
+    };
+
+    return {
+      core: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.7)`,
+      middle: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.4)`,
+      outer: `rgba(${r}, ${g}, ${b}, 0.15)`,
+    };
   }, [moodColor]);
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
-      {/* Tie-dye gradient base */}
+      {/* Soft emotional fog - simple tie-dye */}
       <motion.div
         className="absolute inset-0"
         initial={false}
         animate={{
           background: `
-            radial-gradient(circle at 20% 30%, ${colorVariations[0]} 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, ${colorVariations[1]} 0%, transparent 45%),
-            radial-gradient(circle at 40% 70%, ${colorVariations[2]} 0%, transparent 55%),
-            radial-gradient(circle at 70% 80%, ${colorVariations[3]} 0%, transparent 50%),
-            radial-gradient(circle at 50% 50%, ${colorVariations[4]} 0%, transparent 60%),
-            radial-gradient(circle at 90% 60%, ${colorVariations[0]} 0%, transparent 48%),
-            radial-gradient(circle at 10% 85%, ${colorVariations[1]} 0%, transparent 52%)
+            radial-gradient(circle at 25% 40%, ${backgroundGradients[0]} 0%, transparent 55%),
+            radial-gradient(circle at 75% 30%, ${backgroundGradients[1]} 0%, transparent 50%),
+            radial-gradient(circle at 50% 80%, ${backgroundGradients[2]} 0%, transparent 60%)
           `,
         }}
         transition={{
@@ -61,25 +62,36 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
       />
 
-      {/* Drifting glow (comet effect) */}
+      {/* Main comet - elliptical shape with bright core and directional tail */}
       <motion.div
-        className="absolute w-[800px] h-[800px] rounded-full blur-3xl opacity-60"
+        className="absolute"
+        style={{
+          width: "500px",
+          height: "300px",
+          filter: "blur(40px)",
+        }}
         initial={false}
         animate={{
-          x: ["-20%", "120%"],
-          y: ["20%", "80%", "10%", "90%", "20%"],
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
+          x: ["-10%", "50%", "110%"],
+          y: ["10%", "60%", "30%"],
+          rotate: [25, 35, 25],
+          background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
           x: {
-            duration: 45,
+            duration: 35,
             repeat: Infinity,
-            ease: "linear",
+            ease: "easeInOut",
           },
           y: {
-            duration: 45,
+            duration: 35,
             repeat: Infinity,
-            ease: "linear",
+            ease: "easeInOut",
+          },
+          rotate: {
+            duration: 35,
+            repeat: Infinity,
+            ease: "easeInOut",
           },
           background: {
             duration: 2,
@@ -88,25 +100,36 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
       />
 
-      {/* Secondary subtle glow for depth */}
+      {/* Secondary comet - adds depth and movement variation */}
       <motion.div
-        className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-40"
+        className="absolute"
+        style={{
+          width: "400px",
+          height: "250px",
+          filter: "blur(50px)",
+        }}
         initial={false}
         animate={{
-          x: ["100%", "-20%"],
-          y: ["80%", "30%", "70%", "40%", "80%"],
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 65%)`,
+          x: ["100%", "40%", "-10%"],
+          y: ["80%", "40%", "70%"],
+          rotate: [-20, -30, -20],
+          background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
           x: {
-            duration: 55,
+            duration: 42,
             repeat: Infinity,
-            ease: "linear",
+            ease: "easeInOut",
           },
           y: {
-            duration: 55,
+            duration: 42,
             repeat: Infinity,
-            ease: "linear",
+            ease: "easeInOut",
+          },
+          rotate: {
+            duration: 42,
+            repeat: Infinity,
+            ease: "easeInOut",
           },
           background: {
             duration: 2,
