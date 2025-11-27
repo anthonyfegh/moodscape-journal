@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
+import { LogTextArea } from "@/components/LogTextArea";
 import { toast } from "sonner";
 import { Save, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,13 @@ interface LogEntry {
   emotion: string;
   color: string;
   timestamp: Date;
+}
+
+interface LogSegment {
+  id: string;
+  text: string;
+  color: string;
+  emotion: string;
 }
 
 const Index = () => {
@@ -27,7 +34,7 @@ const Index = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-  const [logPositions, setLogPositions] = useState<number[]>([]);
+  const [logSegments, setLogSegments] = useState<LogSegment[]>([]);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -126,59 +133,36 @@ const Index = () => {
   };
 
   // Handle Enter key to save log entry
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const textarea = e.currentTarget;
-    
-    // Handle Ctrl+Up/Down for navigation between moments
-    if (e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-      e.preventDefault();
-      const currentPos = textarea.selectionStart;
-      
-      if (e.key === "ArrowUp") {
-        // Jump to previous moment
-        const prevPos = [...logPositions].reverse().find(pos => pos < currentPos);
-        if (prevPos !== undefined) {
-          textarea.setSelectionRange(prevPos, prevPos);
-        }
-      } else {
-        // Jump to next moment
-        const nextPos = logPositions.find(pos => pos > currentPos);
-        if (nextPos !== undefined) {
-          textarea.setSelectionRange(nextPos, nextPos);
-        }
-      }
-      return;
-    }
-    
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       
-      // Find the start of current log (last divider position or 0)
-      const lastDivider = text.lastIndexOf("\n━━━━━━━━━━━━━━━━━━━━\n");
-      const logStart = lastDivider === -1 ? 0 : lastDivider + "\n━━━━━━━━━━━━━━━━━━━━\n".length;
-      const contentToSave = text.slice(logStart).trim();
-
+      const contentToSave = text.trim();
       if (contentToSave.length === 0) {
         return;
       }
 
-      const newEntry: LogEntry = {
+      const newSegment: LogSegment = {
         id: Date.now().toString(),
+        text: contentToSave,
+        emotion: personaState,
+        color: moodColor,
+      };
+
+      const newEntry: LogEntry = {
+        id: newSegment.id,
         text: contentToSave,
         emotion: personaState,
         color: moodColor,
         timestamp: new Date(),
       };
 
+      setLogSegments((prev) => [...prev, newSegment]);
       setLogEntries((prev) => [...prev, newEntry]);
-      
-      // Add divider and update positions
-      const divider = "\n━━━━━━━━━━━━━━━━━━━━\n";
-      const newText = text + divider;
-      const newPosition = newText.length;
-      
-      setText(newText);
-      setLogPositions((prev) => [...prev, newPosition]);
+      setText("");
+      setMicroComments([]);
+      setMemoryBubble(null);
+      setIsThinking(false);
     }
   };
 
@@ -250,17 +234,13 @@ const Index = () => {
           </p>
           
           <div className="relative flex-1 mb-4">
-            <Textarea
-              value={text}
-              onChange={handleTextChange}
+            <LogTextArea
+              segments={logSegments}
+              currentText={text}
+              currentColor={moodColor}
+              onTextChange={setText}
               onKeyDown={handleKeyDown}
-              placeholder="Start writing your thoughts... (Press Enter to save as a moment, Ctrl+Up/Down to navigate)"
-              className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
-              style={{
-                borderWidth: '3px',
-                borderColor: moodColor,
-                boxShadow: `0 0 20px ${moodColor}20`,
-              }}
+              placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
             />
             
             <MicroComments comments={microComments} />
