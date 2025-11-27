@@ -17,7 +17,7 @@ interface LogEntry {
 
 const Index = () => {
   const [text, setText] = useState("");
-  const [moodColor, setMoodColor] = useState("#4ade80");
+  const [moodColor, setMoodColor] = useState("#ffffff");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
   const [personaState, setPersonaState] = useState("neutral");
@@ -27,6 +27,7 @@ const Index = () => {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [editingMomentId, setEditingMomentId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  const [colorResetTimeout, setColorResetTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -108,6 +109,11 @@ const Index = () => {
     const newText = e.target.value;
     setText(newText);
     
+    // Clear existing timeout
+    if (colorResetTimeout) {
+      clearTimeout(colorResetTimeout);
+    }
+    
     // Only process words and mood when a word is completed (space or enter)
     if (newText.endsWith(" ") || newText.endsWith("\n")) {
       const allWords = newText.split(/\s+/).filter(w => w.length > 0);
@@ -121,6 +127,15 @@ const Index = () => {
       if (newText.length > 10) {
         analyzeMood(newText);
       }
+    }
+    
+    // Set timeout to reset color after 3 seconds of inactivity
+    if (newText.length > 0) {
+      const timeout = setTimeout(() => {
+        setMoodColor("#ffffff");
+        setPersonaState("neutral");
+      }, 3000);
+      setColorResetTimeout(timeout);
     }
   };
 
@@ -147,8 +162,12 @@ const Index = () => {
       setMicroComments([]);
       setMemoryBubble(null);
       setIsThinking(false);
-      setMoodColor("#4ade80");
+      setMoodColor("#ffffff");
       setPersonaState("neutral");
+      if (colorResetTimeout) {
+        clearTimeout(colorResetTimeout);
+        setColorResetTimeout(null);
+      }
     }
   };
 
