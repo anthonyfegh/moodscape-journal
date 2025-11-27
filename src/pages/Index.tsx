@@ -222,6 +222,7 @@ const Index = () => {
         recentWords={recentWords}
         moodColor={moodColor}
         personaState={personaState}
+        logEntries={logEntries}
       />
       
       <div className="min-h-screen flex p-8 gap-6">
@@ -235,7 +236,6 @@ const Index = () => {
           
           <div className="relative flex-1 mb-4">
             <LogTextArea
-              segments={logSegments}
               currentText={text}
               currentColor={moodColor}
               onTextChange={handleTextChange}
@@ -267,66 +267,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Log Entries Column */}
-        <div className="w-80 flex flex-col gap-3 max-h-[calc(100vh-4rem)] overflow-y-auto pr-2">
-          <h3 className="text-sm font-medium text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
-            Your Moments
-          </h3>
-          <AnimatePresence>
-            {logEntries.map((entry) => (
-              <motion.div
-                key={entry.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg"
-                style={{
-                  borderLeft: `4px solid ${entry.color}`,
-                  backgroundColor: `${entry.color}10`,
-                }}
-                onClick={() => setExpandedLogId(expandedLogId === entry.id ? null : entry.id)}
-              >
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className="text-xs font-medium capitalize px-2 py-1 rounded"
-                      style={{ 
-                        backgroundColor: entry.color,
-                        color: 'white',
-                      }}
-                    >
-                      {entry.emotion}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  
-                  <AnimatePresence>
-                    {expandedLogId === entry.id ? (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="text-sm text-foreground/80 leading-relaxed mt-2">
-                          {entry.text}
-                        </p>
-                      </motion.div>
-                    ) : (
-                      <p className="text-sm text-foreground/60 line-clamp-2">
-                        {entry.text}
-                      </p>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
       </div>
     </div>
   );

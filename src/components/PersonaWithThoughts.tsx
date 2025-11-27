@@ -1,16 +1,33 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import personaAvatar from "@/assets/persona-avatar.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+interface LogEntry {
+  id: string;
+  text: string;
+  emotion: string;
+  color: string;
+  timestamp: Date;
+}
 
 interface PersonaWithThoughtsProps {
   isThinking: boolean;
   recentWords: string[];
   moodColor: string;
   personaState: string;
+  logEntries: LogEntry[];
 }
 
-export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState }: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (recentWords.length > 0) {
@@ -75,40 +92,88 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
         )}
       </AnimatePresence>
 
-      {/* Persona Avatar */}
-      <motion.div
-        animate={{
-          scale: isThinking ? [1, 1.05, 1] : 1,
-        }}
-        transition={{
-          duration: 1.5,
-          repeat: isThinking ? Infinity : 0,
-          repeatType: "reverse",
-        }}
-        className="relative"
-      >
-        <div
-          className="w-20 h-20 rounded-full overflow-hidden border-4 shadow-lg transition-all duration-700"
-          style={{
-            borderColor: moodColor,
-            boxShadow: `0 0 30px ${moodColor}40`,
-          }}
-        >
-          <img
-            src={personaAvatar}
-            alt="Reading Persona"
-            className="w-full h-full object-cover"
-          />
-        </div>
+      {/* Persona Avatar with Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <motion.div
+            animate={{
+              scale: isThinking ? [1, 1.05, 1] : 1,
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: isThinking ? Infinity : 0,
+              repeatType: "reverse",
+            }}
+            className="relative cursor-pointer"
+          >
+            <div
+              className="w-20 h-20 rounded-full overflow-hidden border-4 shadow-lg transition-all duration-700 hover:scale-105"
+              style={{
+                borderColor: moodColor,
+                boxShadow: `0 0 30px ${moodColor}40`,
+              }}
+            >
+              <img
+                src={personaAvatar}
+                alt="Reading Persona"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-        {/* Status indicator */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background"
-          style={{ backgroundColor: moodColor }}
-        />
-      </motion.div>
+            {/* Status indicator */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background"
+              style={{ backgroundColor: moodColor }}
+            />
+          </motion.div>
+        </DialogTrigger>
+
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Your Moments</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {logEntries.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No moments saved yet. Start writing to create your first moment!</p>
+            ) : (
+              <ul className="space-y-3">
+                {logEntries.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="flex gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="text-xs font-medium capitalize px-2 py-0.5 rounded"
+                          style={{
+                            backgroundColor: entry.color,
+                            color: 'white',
+                          }}
+                        >
+                          {entry.emotion}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-foreground/80 leading-relaxed">
+                        {entry.text}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
