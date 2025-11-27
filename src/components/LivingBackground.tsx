@@ -3,9 +3,10 @@ import { useMemo } from "react";
 
 interface LivingBackgroundProps {
   moodColor: string;
+  isTyping: boolean;
 }
 
-export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
+export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps) => {
   // Simpler tie-dye: gentle watercolor wash
   const backgroundGradients = useMemo(() => {
     const hex = moodColor.replace("#", "");
@@ -20,7 +21,7 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
     ];
   }, [moodColor]);
 
-  // Comet glow: saturated, concentrated emotion
+  // Comet glow: saturated, concentrated emotion - reacts to typing
   const cometColors = useMemo(() => {
     const hex = moodColor.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
@@ -33,12 +34,20 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
       return val > mid ? Math.min(val + 80, 255) : Math.max(val - 50, 0);
     };
 
+    // When typing, increase intensity further
+    const intensityMultiplier = isTyping ? 1.15 : 1.0;
+    const baseOpacity = isTyping ? 1.0 : 0.85;
+
     return {
-      core: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.85)`,
-      middle: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.55)`,
-      outer: `rgba(${r}, ${g}, ${b}, 0.25)`,
+      core: `rgba(${Math.min(boost(r) * intensityMultiplier, 255)}, ${Math.min(boost(g) * intensityMultiplier, 255)}, ${Math.min(boost(b) * intensityMultiplier, 255)}, ${baseOpacity})`,
+      middle: `rgba(${Math.min(boost(r) * intensityMultiplier, 255)}, ${Math.min(boost(g) * intensityMultiplier, 255)}, ${Math.min(boost(b) * intensityMultiplier, 255)}, ${isTyping ? 0.65 : 0.55})`,
+      outer: `rgba(${r}, ${g}, ${b}, ${isTyping ? 0.35 : 0.25})`,
     };
-  }, [moodColor]);
+  }, [moodColor, isTyping]);
+
+  // Animation durations react to typing state
+  const mainCometDuration = isTyping ? 18 : 25;
+  const secondaryCometDuration = isTyping ? 22 : 30;
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -80,22 +89,22 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
         transition={{
           x: {
-            duration: 25,
+            duration: mainCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           y: {
-            duration: 25,
+            duration: mainCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           rotate: {
-            duration: 25,
+            duration: mainCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           background: {
-            duration: 2,
+            duration: 1.5,
             ease: "easeInOut",
           },
         }}
@@ -119,22 +128,22 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
         transition={{
           x: {
-            duration: 30,
+            duration: secondaryCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           y: {
-            duration: 30,
+            duration: secondaryCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           rotate: {
-            duration: 30,
+            duration: secondaryCometDuration,
             repeat: Infinity,
             ease: "easeInOut",
           },
           background: {
-            duration: 2,
+            duration: 1.5,
             ease: "easeInOut",
           },
         }}
