@@ -139,6 +139,12 @@ const Index = () => {
       };
       
       setLogEntries((prev) => [...prev, newEntry]);
+      
+      // Clear the text after saving
+      setText("");
+      setMicroComments([]);
+      setMemoryBubble(null);
+      setIsThinking(false);
     }
   };
 
