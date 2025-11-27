@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
-import { LogTextArea } from "@/components/LogTextArea";
-import { toast } from "sonner";
-import { Save, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface LogEntry {
@@ -14,13 +10,6 @@ interface LogEntry {
   emotion: string;
   color: string;
   timestamp: Date;
-}
-
-interface LogSegment {
-  id: string;
-  text: string;
-  color: string;
-  emotion: string;
 }
 
 const Index = () => {
@@ -33,8 +22,8 @@ const Index = () => {
   const [recentWords, setRecentWords] = useState<string[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-  const [logSegments, setLogSegments] = useState<LogSegment[]>([]);
+  const [editingMomentId, setEditingMomentId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -142,28 +131,42 @@ const Index = () => {
         return;
       }
 
-      const newSegment: LogSegment = {
-        id: Date.now().toString(),
-        text: contentToSave,
-        emotion: personaState,
-        color: moodColor,
-      };
-
       const newEntry: LogEntry = {
-        id: newSegment.id,
+        id: Date.now().toString(),
         text: contentToSave,
         emotion: personaState,
         color: moodColor,
         timestamp: new Date(),
       };
 
-      setLogSegments((prev) => [...prev, newSegment]);
       setLogEntries((prev) => [...prev, newEntry]);
       setText("");
       setMicroComments([]);
       setMemoryBubble(null);
       setIsThinking(false);
+      setMoodColor("#4ade80");
+      setPersonaState("neutral");
     }
+  };
+
+  // Handle editing a moment
+  const handleEditMoment = (momentId: string) => {
+    const moment = logEntries.find(e => e.id === momentId);
+    if (moment) {
+      setEditingMomentId(momentId);
+      setEditingText(moment.text);
+    }
+  };
+
+  // Handle saving edited moment
+  const handleSaveEdit = (momentId: string) => {
+    setLogEntries(prev => prev.map(entry => 
+      entry.id === momentId 
+        ? { ...entry, text: editingText }
+        : entry
+    ));
+    setEditingMomentId(null);
+    setEditingText("");
   };
 
   // Generate micro-comments periodically
@@ -189,27 +192,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [text]);
 
-  const handleSave = () => {
-    if (text.length === 0) {
-      toast.error("Write something first!");
-      return;
-    }
-    toast.success("Draft saved successfully!");
-  };
-
-  const handleFinish = () => {
-    if (text.length === 0) {
-      toast.error("Write something first!");
-      return;
-    }
-    toast.success("Entry completed and saved!");
-    setText("");
-    setMicroComments([]);
-    setMemoryBubble(null);
-    setRecentWords([]);
-    setIsThinking(false);
-  };
-
   return (
     <div 
       className="min-h-screen transition-colors duration-700"
@@ -225,8 +207,8 @@ const Index = () => {
         logEntries={logEntries}
       />
       
-      <div className="min-h-screen flex p-8 gap-6">
-        <div className="max-w-3xl flex-1 flex flex-col">
+      <div className="min-h-screen flex flex-col items-center p-8">
+        <div className="max-w-3xl w-full">
           <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">
             Your Journal
           </h1>
@@ -234,98 +216,88 @@ const Index = () => {
             Write freely, and watch your emotions come alive
           </p>
           
-          <div className="relative flex-1 mb-4">
-            <LogTextArea
-              currentText={text}
-              currentColor={moodColor}
-              onTextChange={handleTextChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
-            />
-            
-            <MicroComments comments={microComments} />
-            <MemoryBubbles memory={memoryBubble} />
-          </div>
-
-          {/* Bottom Action Bar */}
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={handleSave}
-              className="gap-2"
-            >
-              <Save className="w-4 h-4" />
-              Save Draft
-            </Button>
-            <Button
-              onClick={handleFinish}
-              className="gap-2 bg-primary hover:bg-primary/90"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Finish Entry
-            </Button>
-          </div>
-        </div>
-
-        {/* Log Entries Column */}
-        <div className="w-80 flex flex-col gap-3 max-h-[calc(100vh-4rem)] overflow-y-auto pr-2">
-          <h3 className="text-sm font-medium text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
-            Your Moments
-          </h3>
-          <AnimatePresence>
-            {logEntries.map((entry) => (
-              <motion.div
-                key={entry.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg"
-                style={{
-                  borderLeft: `4px solid ${entry.color}`,
-                  backgroundColor: `${entry.color}10`,
-                }}
-                onClick={() => setExpandedLogId(expandedLogId === entry.id ? null : entry.id)}
-              >
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className="text-xs font-medium capitalize px-2 py-1 rounded"
-                      style={{ 
-                        backgroundColor: entry.color,
-                        color: 'white',
-                      }}
-                    >
-                      {entry.emotion}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  
-                  <AnimatePresence>
-                    {expandedLogId === entry.id ? (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
+          {/* Alive Canvas - Scrollable container with all moments */}
+          <div className="flex-1 overflow-y-auto max-h-[calc(100vh-20rem)] space-y-4 mb-4 pr-2">
+            <AnimatePresence>
+              {logEntries.map((entry) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="rounded-lg overflow-hidden cursor-pointer transition-all duration-300"
+                  style={{
+                    borderWidth: '3px',
+                    borderColor: entry.color,
+                    backgroundColor: `${entry.color}08`,
+                    boxShadow: `0 0 20px ${entry.color}20`,
+                  }}
+                  onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
+                >
+                  <div className="p-4 backdrop-blur-sm bg-card/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <span
+                        className="text-xs font-medium capitalize px-2 py-1 rounded"
+                        style={{ 
+                          backgroundColor: entry.color,
+                          color: 'white',
+                        }}
                       >
-                        <p className="text-sm text-foreground/80 leading-relaxed mt-2">
-                          {entry.text}
-                        </p>
-                      </motion.div>
+                        {entry.emotion}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    
+                    {editingMomentId === entry.id ? (
+                      <textarea
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        onBlur={() => handleSaveEdit(entry.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSaveEdit(entry.id);
+                          }
+                        }}
+                        className="w-full p-3 bg-background/50 border border-border rounded-lg outline-none resize-none text-foreground leading-relaxed"
+                        rows={4}
+                        autoFocus
+                      />
                     ) : (
-                      <p className="text-sm text-foreground/60 line-clamp-2">
+                      <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
                         {entry.text}
                       </p>
                     )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* New Entry Input at Bottom */}
+          <div 
+            className="w-full rounded-lg overflow-hidden transition-all duration-300"
+            style={{
+              borderWidth: '3px',
+              borderColor: moodColor,
+              boxShadow: `0 0 20px ${moodColor}20`,
+            }}
+          >
+            <div className="relative">
+              <textarea
+                value={text}
+                onChange={handleTextChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
+                className="w-full h-32 p-4 bg-card/50 backdrop-blur-sm border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground"
+              />
+              <MicroComments comments={microComments} />
+              <MemoryBubbles memory={memoryBubble} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
