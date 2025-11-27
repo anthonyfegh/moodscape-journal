@@ -31,6 +31,7 @@ const Index = () => {
   const [colorResetTimeout, setColorResetTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -236,7 +237,7 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
-        <LivingBackground moodColor={moodColor} isTyping={isTyping} />
+        <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} />
 
         <div className="flex-1 min-h-screen relative z-10">
           <PersonaWithThoughts
@@ -284,10 +285,12 @@ const Index = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = `${entry.color}15`;
                           e.currentTarget.style.borderLeft = `3px ${entry.color}`;
+                          setHoveredMoodColor(entry.color);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
                           e.currentTarget.style.borderLeft = "3px solid transparent";
+                          setHoveredMoodColor(null);
                         }}
                         onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
                       >
