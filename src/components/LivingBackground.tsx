@@ -38,9 +38,10 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       {/* Tie-dye gradient base */}
-      <div
-        className="absolute inset-0 transition-all duration-1000 ease-in-out"
-        style={{
+      <motion.div
+        className="absolute inset-0"
+        initial={false}
+        animate={{
           background: `
             radial-gradient(circle at 20% 30%, ${colorVariations[0]} 0%, transparent 50%),
             radial-gradient(circle at 80% 20%, ${colorVariations[1]} 0%, transparent 45%),
@@ -50,6 +51,12 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
             radial-gradient(circle at 90% 60%, ${colorVariations[0]} 0%, transparent 48%),
             radial-gradient(circle at 10% 85%, ${colorVariations[1]} 0%, transparent 52%)
           `,
+        }}
+        transition={{
+          duration: 2,
+          ease: "easeInOut",
+        }}
+        style={{
           backgroundColor: "hsl(var(--background))",
         }}
       />
@@ -57,34 +64,54 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
       {/* Drifting glow (comet effect) */}
       <motion.div
         className="absolute w-[800px] h-[800px] rounded-full blur-3xl opacity-60"
-        style={{
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
-        }}
+        initial={false}
         animate={{
           x: ["-20%", "120%"],
           y: ["20%", "80%", "10%", "90%", "20%"],
+          background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
         }}
         transition={{
-          duration: 45,
-          repeat: Infinity,
-          ease: "linear",
+          x: {
+            duration: 45,
+            repeat: Infinity,
+            ease: "linear",
+          },
+          y: {
+            duration: 45,
+            repeat: Infinity,
+            ease: "linear",
+          },
+          background: {
+            duration: 2,
+            ease: "easeInOut",
+          },
         }}
       />
 
       {/* Secondary subtle glow for depth */}
       <motion.div
         className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-40"
-        style={{
-          background: `radial-gradient(circle, ${glowColor} 0%, transparent 65%)`,
-        }}
+        initial={false}
         animate={{
           x: ["100%", "-20%"],
           y: ["80%", "30%", "70%", "40%", "80%"],
+          background: `radial-gradient(circle, ${glowColor} 0%, transparent 65%)`,
         }}
         transition={{
-          duration: 55,
-          repeat: Infinity,
-          ease: "linear",
+          x: {
+            duration: 55,
+            repeat: Infinity,
+            ease: "linear",
+          },
+          y: {
+            duration: 55,
+            repeat: Infinity,
+            ease: "linear",
+          },
+          background: {
+            duration: 2,
+            ease: "easeInOut",
+          },
         }}
       />
     </div>
