@@ -238,7 +238,7 @@ const Index = () => {
               segments={logSegments}
               currentText={text}
               currentColor={moodColor}
-              onTextChange={setText}
+              onTextChange={handleTextChange}
               onKeyDown={handleKeyDown}
               placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
             />

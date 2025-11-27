@@ -12,7 +12,7 @@ interface LogTextAreaProps {
   segments: LogSegment[];
   currentText: string;
   currentColor: string;
-  onTextChange: (text: string) => void;
+  onTextChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   placeholder?: string;
 }
@@ -29,7 +29,7 @@ export const LogTextArea = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onTextChange(e.target.value);
+    onTextChange(e);
   };
 
   useEffect(() => {
