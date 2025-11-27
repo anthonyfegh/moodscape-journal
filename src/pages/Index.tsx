@@ -106,20 +106,19 @@ const Index = () => {
     const newText = e.target.value;
     setText(newText);
     
-    // Extract completed words for sidebar (exclude the last word being typed)
-    const allWords = newText.split(/\s+/).filter(w => w.length > 0);
-    // Only take words that are followed by a space (completed words)
-    const completedWords = newText.endsWith(' ') || newText.endsWith('\n') 
-      ? allWords 
-      : allWords.slice(0, -1);
-    
-    if (completedWords.length > 0) {
-      setRecentWords(completedWords);
-      setSidebarVisible(true);
-    }
-    
-    if (newText.length > 10) {
-      analyzeMood(newText);
+    // Only process words and mood when a word is completed (space or enter)
+    if (newText.endsWith(" ") || newText.endsWith("\n")) {
+      const allWords = newText.split(/\s+/).filter(w => w.length > 0);
+      const completedWords = allWords;
+
+      if (completedWords.length > 0) {
+        setRecentWords(completedWords);
+        setSidebarVisible(true);
+      }
+
+      if (newText.length > 10) {
+        analyzeMood(newText);
+      }
     }
   };
 
