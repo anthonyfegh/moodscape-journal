@@ -6,6 +6,15 @@ import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { ReadingSidebar } from "@/components/ReadingSidebar";
 import { toast } from "sonner";
 import { Save, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface LogEntry {
+  id: string;
+  text: string;
+  emotion: string;
+  color: string;
+  timestamp: Date;
+}
 
 const Index = () => {
   const [text, setText] = useState("");
@@ -17,6 +26,9 @@ const Index = () => {
   const [recentWords, setRecentWords] = useState<string[]>([]);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [lastMoodColor, setLastMoodColor] = useState("#4ade80");
+  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
 
   // Show/hide sidebar based on triggers
   useEffect(() => {
@@ -122,6 +134,33 @@ const Index = () => {
     }
   };
 
+  // Handle Enter key to save log entry
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && text.trim().length > 0) {
+      e.preventDefault();
+      
+      // Save the current log entry
+      const newEntry: LogEntry = {
+        id: Date.now().toString(),
+        text: text.trim(),
+        emotion: personaState,
+        color: moodColor,
+        timestamp: new Date(),
+      };
+      
+      setLogEntries((prev) => [...prev, newEntry]);
+      
+      // Animate text clearing
+      setIsClearing(true);
+      setTimeout(() => {
+        setText("");
+        setIsClearing(false);
+        setMicroComments([]);
+        setMemoryBubble(null);
+      }, 500);
+    }
+  };
+
   // Generate micro-comments periodically
   useEffect(() => {
     if (text.length < 20) return;
@@ -180,8 +219,8 @@ const Index = () => {
         personaState={personaState}
       />
       
-      <div className="h-screen flex flex-col p-8">
-        <div className="max-w-5xl mx-auto w-full h-full flex flex-col">
+      <div className="min-h-screen flex p-8 gap-6">
+        <div className="max-w-3xl flex-1 flex flex-col">
           <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">
             Your Journal
           </h1>
@@ -190,17 +229,28 @@ const Index = () => {
           </p>
           
           <div className="relative flex-1 mb-4">
-            <Textarea
-              value={text}
-              onChange={handleTextChange}
-              placeholder="Start writing your thoughts..."
-              className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
-              style={{
-                borderWidth: '3px',
-                borderColor: moodColor,
-                boxShadow: `0 0 20px ${moodColor}20`,
-              }}
-            />
+            <AnimatePresence>
+              <motion.div
+                key={isClearing ? "clearing" : "active"}
+                initial={{ opacity: 1 }}
+                animate={{ opacity: isClearing ? 0 : 1 }}
+                transition={{ duration: 0.5 }}
+                className="h-full"
+              >
+                <Textarea
+                  value={text}
+                  onChange={handleTextChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
+                  className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
+                  style={{
+                    borderWidth: '3px',
+                    borderColor: moodColor,
+                    boxShadow: `0 0 20px ${moodColor}20`,
+                  }}
+                />
+              </motion.div>
+            </AnimatePresence>
             
             <MicroComments comments={microComments} />
             <MemoryBubbles memory={memoryBubble} />
@@ -224,6 +274,67 @@ const Index = () => {
               Finish Entry
             </Button>
           </div>
+        </div>
+
+        {/* Log Entries Column */}
+        <div className="w-80 flex flex-col gap-3 overflow-y-auto max-h-screen pb-8">
+          <h3 className="text-sm font-medium text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2">
+            Your Moments
+          </h3>
+          <AnimatePresence>
+            {logEntries.map((entry) => (
+              <motion.div
+                key={entry.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg"
+                style={{
+                  borderLeft: `4px solid ${entry.color}`,
+                  backgroundColor: `${entry.color}10`,
+                }}
+                onClick={() => setExpandedLogId(expandedLogId === entry.id ? null : entry.id)}
+              >
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className="text-xs font-medium capitalize px-2 py-1 rounded"
+                      style={{ 
+                        backgroundColor: entry.color,
+                        color: 'white',
+                      }}
+                    >
+                      {entry.emotion}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  
+                  <AnimatePresence>
+                    {expandedLogId === entry.id ? (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <p className="text-sm text-foreground/80 leading-relaxed mt-2">
+                          {entry.text}
+                        </p>
+                      </motion.div>
+                    ) : (
+                      <p className="text-sm text-foreground/60 line-clamp-2">
+                        {entry.text}
+                      </p>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </div>
