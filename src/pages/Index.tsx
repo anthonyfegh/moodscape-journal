@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
+import { ReadingSidebar } from "@/components/ReadingSidebar";
 import { toast } from "sonner";
 import { Save, CheckCircle } from "lucide-react";
 
@@ -13,6 +14,28 @@ const Index = () => {
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
   const [personaState, setPersonaState] = useState("neutral");
   const [wordFrequency, setWordFrequency] = useState<Map<string, number>>(new Map());
+  const [recentWords, setRecentWords] = useState<string[]>([]);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [lastMoodColor, setLastMoodColor] = useState("#4ade80");
+
+  // Show/hide sidebar based on triggers
+  useEffect(() => {
+    if (moodColor !== lastMoodColor || memoryBubble) {
+      setSidebarVisible(true);
+      setLastMoodColor(moodColor);
+    }
+  }, [moodColor, memoryBubble, lastMoodColor]);
+
+  // Hide sidebar after inactivity
+  useEffect(() => {
+    if (!sidebarVisible) return;
+    
+    const timer = setTimeout(() => {
+      setSidebarVisible(false);
+    }, 8000);
+
+    return () => clearTimeout(timer);
+  }, [sidebarVisible, text]);
 
   // Analyze text and update mood
   const analyzeMood = useCallback((content: string) => {
@@ -83,6 +106,13 @@ const Index = () => {
     const newText = e.target.value;
     setText(newText);
     
+    // Extract new words for sidebar
+    const words = newText.split(/\s+/).filter(w => w.length > 0);
+    if (words.length > 0) {
+      setRecentWords(words);
+      setSidebarVisible(true);
+    }
+    
     if (newText.length > 10) {
       analyzeMood(newText);
     }
@@ -128,6 +158,8 @@ const Index = () => {
     setText("");
     setMicroComments([]);
     setMemoryBubble(null);
+    setRecentWords([]);
+    setSidebarVisible(false);
   };
 
   return (
@@ -137,6 +169,13 @@ const Index = () => {
         backgroundColor: `${moodColor}08`,
       }}
     >
+      <ReadingSidebar 
+        isVisible={sidebarVisible}
+        recentWords={recentWords}
+        moodColor={moodColor}
+        personaState={personaState}
+      />
+      
       <div className="h-screen flex flex-col p-8">
         <div className="max-w-5xl mx-auto w-full h-full flex flex-col">
           <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">
