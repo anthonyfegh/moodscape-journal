@@ -32,6 +32,7 @@ const Index = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -330,12 +331,18 @@ const Index = () => {
                       value={text}
                       onChange={handleTextChange}
                       onKeyDown={handleKeyDown}
+                      onMouseMove={(e) => {
+                        setCursorPosition({ x: e.clientX, y: e.clientY });
+                      }}
+                      onClick={(e) => {
+                        setCursorPosition({ x: e.clientX, y: e.clientY });
+                      }}
                       placeholder="Continue writing..."
                       className="w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40"
                       rows={6}
                       style={{ lineHeight: "32px" }}
                     />
-                    <MicroComments comments={microComments} />
+                    <MicroComments comments={microComments} isTyping={isTyping} cursorPosition={cursorPosition} />
                     <MemoryBubbles memory={memoryBubble} />
                   </div>
                 </div>
