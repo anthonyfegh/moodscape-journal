@@ -115,12 +115,12 @@ const Index = () => {
 
     // Set typing state
     setIsTyping(true);
-    
+
     // Clear existing typing timeout
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
-    
+
     // Set new typing timeout (2.5 seconds of inactivity)
     const newTypingTimeout = setTimeout(() => {
       setIsTyping(false);
@@ -237,7 +237,7 @@ const Index = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
         <LivingBackground moodColor={moodColor} isTyping={isTyping} />
-        
+
         <div className="flex-1 min-h-screen relative z-10">
           <PersonaWithThoughts
             isThinking={isThinking}
@@ -283,7 +283,7 @@ const Index = () => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = `${entry.color}15`;
-                          e.currentTarget.style.borderLeft = `3px solid ${entry.color}`;
+                          e.currentTarget.style.borderLeft = `3px ${entry.color}`;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
