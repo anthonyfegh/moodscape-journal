@@ -54,7 +54,7 @@ export function JournalSidebar({ logEntries, onMomentClick }: JournalSidebarProp
                       className="text-xs font-medium capitalize px-2 py-1 rounded"
                       style={{
                         backgroundColor: entry.color,
-                        color: "gray",
+                        color: "black",
                       }}
                     >
                       {entry.emotion}
