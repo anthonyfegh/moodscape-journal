@@ -72,8 +72,8 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
         initial={false}
         animate={{
-          x: ["-30vw", "30vw", "90vw"]
-          y: ["-10vh", "40vh", "80vh"]
+          x: ["-30vw", "30vw", "90vw"],
+          y: ["-10vh", "40vh", "80vh"],
 
           rotate: [25, 35, 25],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
@@ -111,8 +111,8 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
         }}
         initial={false}
         animate={{
-          x: ["90vw", "30vw", "-20vw"]
-          y: ["70vh", "30vh", "60vh"]
+          x: ["90vw", "30vw", "-20vw"],
+          y: ["70vh", "30vh", "60vh"],
 
           rotate: [-20, -30, -20],
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
