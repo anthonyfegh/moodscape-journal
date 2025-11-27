@@ -29,6 +29,8 @@ const Index = () => {
   const [editingMomentId, setEditingMomentId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [colorResetTimeout, setColorResetTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -111,7 +113,21 @@ const Index = () => {
     const newText = e.target.value;
     setText(newText);
 
-    // Clear existing timeout
+    // Set typing state
+    setIsTyping(true);
+    
+    // Clear existing typing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    // Set new typing timeout (2.5 seconds of inactivity)
+    const newTypingTimeout = setTimeout(() => {
+      setIsTyping(false);
+    }, 2500);
+    setTypingTimeout(newTypingTimeout);
+
+    // Clear existing color reset timeout
     if (colorResetTimeout) {
       clearTimeout(colorResetTimeout);
     }
@@ -166,9 +182,14 @@ const Index = () => {
       setIsThinking(false);
       setMoodColor("#fbbf24");
       setPersonaState("neutral");
+      setIsTyping(false);
       if (colorResetTimeout) {
         clearTimeout(colorResetTimeout);
         setColorResetTimeout(null);
+      }
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        setTypingTimeout(null);
       }
     }
   };
@@ -215,7 +236,7 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
-        <LivingBackground moodColor={moodColor} />
+        <LivingBackground moodColor={moodColor} isTyping={isTyping} />
         
         <div className="flex-1 min-h-screen relative z-10">
           <PersonaWithThoughts
