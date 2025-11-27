@@ -27,16 +27,16 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Boost saturation by pushing values toward their extremes
+    // Boost saturation by pushing values more aggressively toward their extremes
     const boost = (val: number) => {
       const mid = 127;
-      return val > mid ? Math.min(val + 50, 255) : Math.max(val - 30, 0);
+      return val > mid ? Math.min(val + 80, 255) : Math.max(val - 50, 0);
     };
 
     return {
-      core: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.7)`,
-      middle: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.4)`,
-      outer: `rgba(${r}, ${g}, ${b}, 0.15)`,
+      core: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.85)`,
+      middle: `rgba(${boost(r)}, ${boost(g)}, ${boost(b)}, 0.55)`,
+      outer: `rgba(${r}, ${g}, ${b}, 0.25)`,
     };
   }, [moodColor]);
 
