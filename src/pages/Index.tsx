@@ -3,6 +3,7 @@ import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
 import { JournalSidebar } from "@/components/JournalSidebar";
+import { LivingBackground } from "@/components/LivingBackground";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -213,13 +214,10 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <div
-          className="flex-1 min-h-screen transition-colors duration-700"
-          style={{
-            backgroundColor: `${moodColor}20`,
-          }}
-        >
+      <div className="min-h-screen flex w-full relative">
+        <LivingBackground moodColor={moodColor} />
+        
+        <div className="flex-1 min-h-screen relative z-10">
           <PersonaWithThoughts
             isThinking={isThinking}
             recentWords={recentWords}
