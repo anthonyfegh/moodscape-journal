@@ -17,7 +17,7 @@ interface LogEntry {
 
 const Index = () => {
   const [text, setText] = useState("");
-  const [moodColor, setMoodColor] = useState("#ffffff");
+  const [moodColor, setMoodColor] = useState("#4ade80");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
   const [personaState, setPersonaState] = useState("neutral");
