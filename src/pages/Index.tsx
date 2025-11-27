@@ -27,7 +27,7 @@ const Index = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-  const [lastLogIndex, setLastLogIndex] = useState(0);
+  const [logPositions, setLogPositions] = useState<number[]>([]);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -127,23 +127,58 @@ const Index = () => {
 
   // Handle Enter key to save log entry
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget;
+    
+    // Handle Ctrl+Up/Down for navigation between moments
+    if (e.ctrlKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      const currentPos = textarea.selectionStart;
+      
+      if (e.key === "ArrowUp") {
+        // Jump to previous moment
+        const prevPos = [...logPositions].reverse().find(pos => pos < currentPos);
+        if (prevPos !== undefined) {
+          textarea.setSelectionRange(prevPos, prevPos);
+        }
+      } else {
+        // Jump to next moment
+        const nextPos = logPositions.find(pos => pos > currentPos);
+        if (nextPos !== undefined) {
+          textarea.setSelectionRange(nextPos, nextPos);
+        }
+      }
+      return;
+    }
+    
     if (e.key === "Enter" && !e.shiftKey) {
-      const contentBeforeEnter = text.slice(lastLogIndex).trim();
+      e.preventDefault();
+      
+      // Find the start of current log (last divider position or 0)
+      const lastDivider = text.lastIndexOf("\n━━━━━━━━━━━━━━━━━━━━\n");
+      const logStart = lastDivider === -1 ? 0 : lastDivider + "\n━━━━━━━━━━━━━━━━━━━━\n".length;
+      const contentToSave = text.slice(logStart).trim();
 
-      if (contentBeforeEnter.length === 0) {
+      if (contentToSave.length === 0) {
         return;
       }
 
       const newEntry: LogEntry = {
         id: Date.now().toString(),
-        text: contentBeforeEnter,
+        text: contentToSave,
         emotion: personaState,
         color: moodColor,
         timestamp: new Date(),
       };
 
       setLogEntries((prev) => [...prev, newEntry]);
-      setLastLogIndex(text.length + 1);
+      
+      // Add divider and update positions
+      const divider = "\n━━━━━━━━━━━━━━━━━━━━\n";
+      const newText = text + divider;
+      const newPosition = newText.length;
+      
+      setText(newText);
+      setLogPositions((prev) => [...prev, newPosition]);
     }
   };
 
@@ -219,7 +254,7 @@ const Index = () => {
               value={text}
               onChange={handleTextChange}
               onKeyDown={handleKeyDown}
-              placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
+              placeholder="Start writing your thoughts... (Press Enter to save as a moment, Ctrl+Up/Down to navigate)"
               className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
               style={{
                 borderWidth: '3px',
