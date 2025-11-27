@@ -47,17 +47,14 @@ export const ReadingSidebar = ({ isVisible, recentWords, moodColor, personaState
 
             <div className="space-y-2 mt-8">
               <p className="text-xs text-muted-foreground">Recent words</p>
-              <div className="space-y-1 max-h-[60vh] overflow-hidden">
+              <div className="flex flex-wrap gap-2 max-h-[60vh] overflow-hidden">
                 {displayWords.map((word, index) => (
                   <motion.div
                     key={`${word}-${index}`}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 - (displayWords.length - index - 1) * 0.06 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 - (displayWords.length - index - 1) * 0.06 }}
                     transition={{ duration: 0.3 }}
-                    className="text-foreground/80 text-sm font-light"
-                    style={{
-                      fontSize: `${1 - (displayWords.length - index - 1) * 0.02}rem`,
-                    }}
+                    className="text-foreground/80 text-sm font-light px-2 py-1 rounded-md bg-muted/30"
                   >
                     {word}
                   </motion.div>
