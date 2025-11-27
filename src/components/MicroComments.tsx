@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 interface MicroCommentsProps {
   comments: string[];
   isTyping: boolean;
-  cursorPosition: { x: number; y: number };
 }
 
-export const MicroComments = ({ comments, isTyping, cursorPosition }: MicroCommentsProps) => {
+export const MicroComments = ({ comments, isTyping }: MicroCommentsProps) => {
   const [visibleComment, setVisibleComment] = useState<string | null>(null);
   const [shouldShow, setShouldShow] = useState(false);
 
@@ -36,14 +35,7 @@ export const MicroComments = ({ comments, isTyping, cursorPosition }: MicroComme
   if (!visibleComment || !shouldShow) return null;
 
   return (
-    <div
-      className="fixed pointer-events-none z-50"
-      style={{
-        left: `${cursorPosition.x}px`,
-        top: `${cursorPosition.y + 20}px`,
-        transform: 'translateX(-50%)',
-      }}
-    >
+    <div className="absolute top-2 left-2 pointer-events-none z-10">
       <div
         className="transition-all duration-500 ease-out"
         style={{
@@ -51,7 +43,7 @@ export const MicroComments = ({ comments, isTyping, cursorPosition }: MicroComme
           transform: shouldShow && !isTyping ? 'translateY(0)' : 'translateY(-10px)',
         }}
       >
-        <p className="text-sm text-foreground/70 italic whitespace-nowrap">"{visibleComment}"</p>
+        <p className="text-lg text-muted-foreground/40 italic">"{visibleComment}"</p>
       </div>
     </div>
   );
