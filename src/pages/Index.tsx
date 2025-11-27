@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
+import { JournalSidebar } from "@/components/JournalSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface LogEntry {
@@ -193,106 +196,119 @@ const Index = () => {
   }, [text]);
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-700"
-      style={{
-        backgroundColor: `${moodColor}08`,
-      }}
-    >
-      <PersonaWithThoughts 
-        isThinking={isThinking}
-        recentWords={recentWords}
-        moodColor={moodColor}
-        personaState={personaState}
-        logEntries={logEntries}
-      />
-      
-      <div className="min-h-screen flex flex-col items-center p-8">
-        <div className="max-w-3xl w-full">
-          <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">
-            Your Journal
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            Write freely, and watch your emotions come alive
-          </p>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <div 
+          className="flex-1 min-h-screen transition-colors duration-700"
+          style={{
+            backgroundColor: `${moodColor}20`,
+          }}
+        >
+          <PersonaWithThoughts 
+            isThinking={isThinking}
+            recentWords={recentWords}
+            moodColor={moodColor}
+            personaState={personaState}
+            logEntries={logEntries}
+          />
           
-          {/* Continuous Writing Surface - like a sheet of paper */}
-          <div 
-            className="bg-background/40 backdrop-blur-sm rounded-lg p-8 shadow-sm"
-            style={{
-              backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.08) 31px, hsl(var(--border) / 0.08) 32px)',
-              lineHeight: '32px',
-            }}
-          >
-            <div className="space-y-6">
-              <AnimatePresence>
-                {logEntries.map((entry) => (
-                  <motion.div
-                    key={entry.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="group cursor-pointer transition-opacity duration-200 hover:opacity-100 opacity-90"
-                    onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
-                  >
-                    {editingMomentId === entry.id ? (
-                      <textarea
-                        value={editingText}
-                        onChange={(e) => setEditingText(e.target.value)}
-                        onBlur={() => handleSaveEdit(entry.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSaveEdit(entry.id);
-                          }
-                        }}
-                        className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
-                        rows={4}
-                        autoFocus
-                        style={{ lineHeight: '32px' }}
-                      />
-                    ) : (
-                      <div className="relative">
-                        <p 
-                          className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
-                          style={{ 
-                            lineHeight: '32px',
-                            color: `${entry.color}dd`,
-                          }}
-                        >
-                          {entry.text}
-                        </p>
-                        <span 
-                          className="absolute -left-6 top-0 text-xs opacity-0 group-hover:opacity-60 transition-opacity duration-200 text-muted-foreground"
-                        >
-                          {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+          {/* Toggle Sidebar Button */}
+          <div className="fixed top-4 right-4 z-50">
+            <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
+              <Menu className="h-4 w-4" />
+            </SidebarTrigger>
+          </div>
+          
+          <div className="min-h-screen flex flex-col items-center p-8">
+            <div className="max-w-3xl w-full">
+              <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">
+                Your Journal
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                Write freely, and watch your emotions come alive
+              </p>
+              
+              {/* Continuous Writing Surface - like a sheet of paper */}
+              <div 
+                className="bg-background/40 backdrop-blur-sm rounded-lg p-8 shadow-sm"
+                style={{
+                  backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.08) 31px, hsl(var(--border) / 0.08) 32px)',
+                  lineHeight: '32px',
+                }}
+              >
+                <div className="space-y-6">
+                  <AnimatePresence>
+                    {logEntries.map((entry) => (
+                      <motion.div
+                        key={entry.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="group cursor-pointer transition-opacity duration-200 hover:opacity-100 opacity-90"
+                        onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
+                      >
+                        {editingMomentId === entry.id ? (
+                          <textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => handleSaveEdit(entry.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSaveEdit(entry.id);
+                              }
+                            }}
+                            className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
+                            rows={4}
+                            autoFocus
+                            style={{ lineHeight: '32px' }}
+                          />
+                        ) : (
+                          <div className="relative">
+                            <p 
+                              className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
+                              style={{ lineHeight: '32px' }}
+                            >
+                              {entry.text}
+                            </p>
+                            <span 
+                              className="absolute -left-6 top-0 text-xs opacity-0 group-hover:opacity-60 transition-opacity duration-200 text-muted-foreground"
+                            >
+                              {entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
 
-              {/* Live Input - blends into the same page */}
-              <div className="relative">
-                <textarea
-                  value={text}
-                  onChange={handleTextChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Continue writing..."
-                  className="w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40"
-                  rows={6}
-                  style={{ lineHeight: '32px' }}
-                />
-                <MicroComments comments={microComments} />
-                <MemoryBubbles memory={memoryBubble} />
+                  {/* Live Input - blends into the same page */}
+                  <div className="relative">
+                    <textarea
+                      value={text}
+                      onChange={handleTextChange}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Continue writing..."
+                      className="w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40"
+                      rows={6}
+                      style={{ lineHeight: '32px' }}
+                    />
+                    <MicroComments comments={microComments} />
+                    <MemoryBubbles memory={memoryBubble} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        
+        <JournalSidebar 
+          logEntries={logEntries} 
+          onMomentClick={(id) => handleEditMoment(id)}
+        />
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
