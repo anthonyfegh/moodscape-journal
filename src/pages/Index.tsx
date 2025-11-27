@@ -27,7 +27,6 @@ const Index = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-  const [isClearing, setIsClearing] = useState(false);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -140,15 +139,6 @@ const Index = () => {
       };
       
       setLogEntries((prev) => [...prev, newEntry]);
-      
-      // Animate text clearing
-      setIsClearing(true);
-      setTimeout(() => {
-        setText("");
-        setIsClearing(false);
-        setMicroComments([]);
-        setMemoryBubble(null);
-      }, 500);
     }
   };
 
@@ -220,28 +210,18 @@ const Index = () => {
           </p>
           
           <div className="relative flex-1 mb-4">
-            <AnimatePresence>
-              <motion.div
-                key={isClearing ? "clearing" : "active"}
-                initial={{ opacity: 1 }}
-                animate={{ opacity: isClearing ? 0 : 1 }}
-                transition={{ duration: 0.5 }}
-                className="h-full"
-              >
-                <Textarea
-                  value={text}
-                  onChange={handleTextChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
-                  className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
-                  style={{
-                    borderWidth: '3px',
-                    borderColor: moodColor,
-                    boxShadow: `0 0 20px ${moodColor}20`,
-                  }}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <Textarea
+              value={text}
+              onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Start writing your thoughts... (Press Enter to save as a moment)"
+              className="w-full h-full resize-none bg-card/50 backdrop-blur-sm rounded-lg p-8 text-lg leading-relaxed transition-all duration-700 focus:outline-none"
+              style={{
+                borderWidth: '3px',
+                borderColor: moodColor,
+                boxShadow: `0 0 20px ${moodColor}20`,
+              }}
+            />
             
             <MicroComments comments={microComments} />
             <MemoryBubbles memory={memoryBubble} />
@@ -268,8 +248,8 @@ const Index = () => {
         </div>
 
         {/* Log Entries Column */}
-        <div className="w-80 flex flex-col gap-3 overflow-y-auto max-h-screen pb-8">
-          <h3 className="text-sm font-medium text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2">
+        <div className="w-80 flex flex-col gap-3 max-h-[calc(100vh-4rem)] overflow-y-auto pr-2">
+          <h3 className="text-sm font-medium text-muted-foreground sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
             Your Moments
           </h3>
           <AnimatePresence>
