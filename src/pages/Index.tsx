@@ -18,7 +18,7 @@ interface LogEntry {
 
 const Index = () => {
   const [text, setText] = useState("");
-  const [moodColor, setMoodColor] = useState("#fffff");
+  const [moodColor, setMoodColor] = useState("#fbbf24");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
   const [personaState, setPersonaState] = useState("neutral");
@@ -134,7 +134,7 @@ const Index = () => {
     // Set timeout to reset color after 3 seconds of inactivity
     if (newText.length > 0) {
       const timeout = setTimeout(() => {
-        setMoodColor("#ffffff");
+        setMoodColor("#fbbf24");
         setPersonaState("neutral");
       }, 3000);
       setColorResetTimeout(timeout);
@@ -164,7 +164,7 @@ const Index = () => {
       setMicroComments([]);
       setMemoryBubble(null);
       setIsThinking(false);
-      setMoodColor("#ffffff");
+      setMoodColor("#fbbf24");
       setPersonaState("neutral");
       if (colorResetTimeout) {
         clearTimeout(colorResetTimeout);

@@ -66,31 +66,31 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
       <motion.div
         className="absolute"
         style={{
-          width: "500px",
-          height: "300px",
-          filter: "blur(40px)",
+          width: "600px",
+          height: "350px",
+          filter: "blur(35px)",
         }}
         initial={false}
         animate={{
-          x: ["-30vw", "30vw", "90vw"],
-          y: ["-10vh", "40vh", "80vh"],
+          x: ["-40vw", "50vw", "120vw"],
+          y: ["-20vh", "50vh", "100vh"],
 
           rotate: [25, 35, 25],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
           x: {
-            duration: 35,
+            duration: 25,
             repeat: Infinity,
             ease: "easeInOut",
           },
           y: {
-            duration: 35,
+            duration: 25,
             repeat: Infinity,
             ease: "easeInOut",
           },
           rotate: {
-            duration: 35,
+            duration: 25,
             repeat: Infinity,
             ease: "easeInOut",
           },
@@ -105,31 +105,31 @@ export const LivingBackground = ({ moodColor }: LivingBackgroundProps) => {
       <motion.div
         className="absolute"
         style={{
-          width: "400px",
-          height: "250px",
-          filter: "blur(50px)",
+          width: "500px",
+          height: "300px",
+          filter: "blur(45px)",
         }}
         initial={false}
         animate={{
-          x: ["90vw", "30vw", "-20vw"],
-          y: ["70vh", "30vh", "60vh"],
+          x: ["110vw", "40vw", "-30vw"],
+          y: ["80vh", "20vh", "70vh"],
 
           rotate: [-20, -30, -20],
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
           x: {
-            duration: 42,
+            duration: 30,
             repeat: Infinity,
             ease: "easeInOut",
           },
           y: {
-            duration: 42,
+            duration: 30,
             repeat: Infinity,
             ease: "easeInOut",
           },
           rotate: {
-            duration: 42,
+            duration: 30,
             repeat: Infinity,
             ease: "easeInOut",
           },
