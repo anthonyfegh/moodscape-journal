@@ -83,7 +83,7 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
         animate={{
           x: ["-15vw", "40vw", "105vw"],
           y: ["-10vh", "50vh", "90vh"],
-
+          scale: isTyping ? [1, 1.08, 1] : 1,
           rotate: [25, 35, 25],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
@@ -96,6 +96,11 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
           y: {
             duration: mainCometDuration,
             repeat: Infinity,
+            ease: "easeInOut",
+          },
+          scale: {
+            duration: 2,
+            repeat: isTyping ? Infinity : 0,
             ease: "easeInOut",
           },
           rotate: {
@@ -122,7 +127,7 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
         animate={{
           x: ["105vw", "45vw", "-15vw"],
           y: ["90vh", "40vh", "80vh"],
-
+          scale: isTyping ? [1, 1.06, 1] : 1,
           rotate: [-20, -30, -20],
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
@@ -135,6 +140,11 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
           y: {
             duration: secondaryCometDuration,
             repeat: Infinity,
+            ease: "easeInOut",
+          },
+          scale: {
+            duration: 1.8,
+            repeat: isTyping ? Infinity : 0,
             ease: "easeInOut",
           },
           rotate: {
