@@ -261,10 +261,10 @@ const Index = () => {
 
               {/* Continuous Writing Surface - like a sheet of paper */}
               <div
-                className="bg-background/40 backdrop-blur-sm rounded-lg p-8 shadow-sm"
+                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10"
                 style={{
                   backgroundImage:
-                    "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.08) 31px, hsl(var(--border) / 0.08) 32px)",
+                    "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
                   lineHeight: "32px",
                 }}
               >
