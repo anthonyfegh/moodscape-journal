@@ -3,6 +3,14 @@ import { motion } from "framer-motion";
 import { SharedNavigation } from "@/components/SharedNavigation";
 import { LivingBackground } from "@/components/LivingBackground";
 import { Button } from "@/components/ui/button";
+import { StorySlide } from "@/components/pitch/StorySlide";
+import { ProblemSlide } from "@/components/pitch/ProblemSlide";
+import { SolutionSlide } from "@/components/pitch/SolutionSlide";
+import { FeaturesSlide } from "@/components/pitch/FeaturesSlide";
+import { TechSlide } from "@/components/pitch/TechSlide";
+import { CompetitorSlide } from "@/components/pitch/CompetitorSlide";
+import { ValueSlide } from "@/components/pitch/ValueSlide";
+import { BusinessSlide } from "@/components/pitch/BusinessSlide";
 
 const Landing = () => {
   return (
@@ -86,6 +94,16 @@ const Landing = () => {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Scroll-driven pitch sections */}
+        <StorySlide />
+        <ProblemSlide />
+        <SolutionSlide />
+        <FeaturesSlide />
+        <TechSlide />
+        <CompetitorSlide />
+        <ValueSlide />
+        <BusinessSlide />
       </main>
     </div>
   );
