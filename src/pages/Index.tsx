@@ -340,7 +340,7 @@ const IndexContent = () => {
                 lineHeight: "32px",
               }}
             >
-              <EmotionalRipple isActive={rippleActive} moodColor={moodColor} />
+              <EmotionalRipple isActive={rippleActive} moodColor={moodColor} caretPosition={caretPosition} />
               <div className="space-y-6">
                 <AnimatePresence>
                   {logEntries.map((entry) => (
