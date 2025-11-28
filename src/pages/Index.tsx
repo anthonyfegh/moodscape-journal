@@ -895,7 +895,7 @@ const IndexContent = () => {
 
                               {/* AI Reflections - soft, handwritten style */}
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
-                                    <Accordion type="single" collapsible defaultValue="reflections" className="pl-6 border-l-2 border-muted-foreground/10">
+                                    <Accordion type="single" collapsible className="pl-6 border-l-2 border-muted-foreground/10">
                                   <AccordionItem value="reflections" className="border-none">
                                     <AccordionTrigger 
                                       className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
