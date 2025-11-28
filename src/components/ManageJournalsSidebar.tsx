@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen } from "lucide-react";
+import { Plus, BookOpen, X } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const ManageJournalsSidebar = () => {
   const navigate = useNavigate();
+  const { setOpen } = useSidebar();
   const [journals, setJournals] = useState<Journal[]>(journalStorage.getJournals());
   const [isCreating, setIsCreating] = useState(false);
   const [newJournalName, setNewJournalName] = useState("");
@@ -49,8 +51,19 @@ export const ManageJournalsSidebar = () => {
   };
 
   return (
-    <Sidebar className="border-l border-border/20 bg-background/20 backdrop-blur-2xl">
+    <Sidebar className="border-l border-border/20 bg-background/20 backdrop-blur-2xl" collapsible="offcanvas">
       <SidebarHeader className="p-4 border-b border-border/20">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-foreground">Journals</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpen(false)}
+            className="h-6 w-6 p-0 hover:bg-background/40"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         <Button
           onClick={() => setIsCreating(!isCreating)}
           className="w-full bg-primary/10 hover:bg-primary/20 text-foreground"
