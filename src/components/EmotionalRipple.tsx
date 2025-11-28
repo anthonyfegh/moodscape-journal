@@ -3,10 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 interface EmotionalRippleProps {
   isActive: boolean;
   moodColor: string;
-  position: { x: number; y: number };
 }
 
-export const EmotionalRipple = ({ isActive, moodColor, position }: EmotionalRippleProps) => {
+export const EmotionalRipple = ({ isActive, moodColor }: EmotionalRippleProps) => {
   // Convert hex to rgba with low opacity
   const hexToRgba = (hex: string, opacity: number) => {
     const cleanHex = hex.replace("#", "");
@@ -27,8 +26,8 @@ export const EmotionalRipple = ({ isActive, moodColor, position }: EmotionalRipp
           <motion.div
             className="absolute"
             style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
+              left: "50%",
+              top: "50%",
               width: "100px",
               height: "100px",
               borderRadius: "50%",
@@ -44,8 +43,8 @@ export const EmotionalRipple = ({ isActive, moodColor, position }: EmotionalRipp
           <motion.div
             className="absolute"
             style={{
-              left: `${position.x}%`,
-              top: `${position.y}%`,
+              left: "50%",
+              top: "50%",
               width: "80px",
               height: "80px",
               borderRadius: "50%",
