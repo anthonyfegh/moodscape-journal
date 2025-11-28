@@ -150,7 +150,7 @@ const JournalsContent = () => {
 
 const Journals = () => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <JournalsContent />
     </SidebarProvider>
   );

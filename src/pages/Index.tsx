@@ -495,7 +495,7 @@ const IndexContent = () => {
 
 const Index = () => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <IndexContent />
     </SidebarProvider>
   );
