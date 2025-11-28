@@ -9,7 +9,7 @@ import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
-import { MomentSelectionModal } from "@/components/MomentSelectionModal";
+
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
   Accordion,
@@ -66,7 +66,7 @@ const IndexContent = () => {
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const [rippleActive, setRippleActive] = useState(false);
-  const [momentModalOpen, setMomentModalOpen] = useState(false);
+  const [isSelectingMoment, setIsSelectingMoment] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
   const [hoveredReflection, setHoveredReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
@@ -452,13 +452,13 @@ const IndexContent = () => {
       toast.info("Write and save some moments first to reflect on them!");
       return;
     }
-    setMomentModalOpen(true);
+    setIsSelectingMoment(true);
   };
 
   const handleMomentSelect = async (moment: LogEntry) => {
     setSelectedMoment(moment);
     setIsGeneratingReflection(true);
-    setMomentModalOpen(false);
+    setIsSelectingMoment(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-reflection', {
@@ -689,22 +689,41 @@ const IndexContent = () => {
             {/* Centered layout with moments on the side */}
             <div className="flex gap-4 justify-center items-start">
               {/* Left column: Compact Moments */}
-              <div className="space-y-3 w-64 flex-shrink-0">
+              <div className="space-y-3 w-64 flex-shrink-0 relative z-10">
                 <AnimatePresence>
                   {logEntries.map((entry, index) => (
                     <motion.div
                       key={entry.id}
                       initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      animate={
+                        isSelectingMoment
+                          ? { 
+                              opacity: 1, 
+                              x: 0, 
+                              scale: 1.4, 
+                              y: 0,
+                              zIndex: 50
+                            }
+                          : { opacity: 1, x: 0, scale: 1, y: 0, zIndex: 1 }
+                      }
                       exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      onMouseEnter={() => setHoveredMoodColor(entry.color)}
-                      onMouseLeave={() => setHoveredMoodColor(null)}
-                      onClick={() => handleEditMoment(entry.id, true)}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: isSelectingMoment ? index * 0.08 : index * 0.05,
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 20
+                      }}
+                      onMouseEnter={() => !isSelectingMoment && setHoveredMoodColor(entry.color)}
+                      onMouseLeave={() => !isSelectingMoment && setHoveredMoodColor(null)}
+                      onClick={() => isSelectingMoment ? handleMomentSelect(entry) : handleEditMoment(entry.id, true)}
                       className="cursor-pointer"
+                      style={{ zIndex: isSelectingMoment ? 50 : 1 }}
                     >
                       <Card 
-                        className="relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2"
+                        className={`relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2 ${
+                          isSelectingMoment ? "shadow-2xl ring-4 ring-primary/20" : ""
+                        }`}
                         style={{ borderColor: entry.color }}
                       >
                         {/* Content */}
@@ -722,7 +741,9 @@ const IndexContent = () => {
                               </span>
                             </div>
                           </div>
-                          <p className="text-xs leading-relaxed text-foreground whitespace-pre-wrap line-clamp-2">
+                          <p className={`text-xs leading-relaxed text-foreground whitespace-pre-wrap ${
+                            isSelectingMoment ? "" : "line-clamp-2"
+                          }`}>
                             {entry.text}
                           </p>
                         </div>
@@ -733,8 +754,14 @@ const IndexContent = () => {
               </div>
 
               {/* Center: Writing Surface */}
-              <div
+              <motion.div
                 className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative min-h-[600px] w-[700px] flex-shrink-0"
+                animate={
+                  isSelectingMoment 
+                    ? { filter: "blur(8px)", opacity: 0.5 }
+                    : { filter: "blur(0px)", opacity: 1 }
+                }
+                transition={{ duration: 0.3 }}
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
@@ -890,20 +917,21 @@ const IndexContent = () => {
                     <MemoryBubbles memory={memoryBubble} />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
       </div>
 
-      <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
+      {/* Click outside to exit selection mode */}
+      {isSelectingMoment && (
+        <div 
+          className="fixed inset-0 z-0 bg-black/20 backdrop-blur-sm"
+          onClick={() => setIsSelectingMoment(false)}
+        />
+      )}
 
-      <MomentSelectionModal
-        open={momentModalOpen}
-        onClose={() => setMomentModalOpen(false)}
-        moments={logEntries}
-        onSelectMoment={handleMomentSelect}
-      />
+      <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
     </motion.div>
   );
 };
