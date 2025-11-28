@@ -54,7 +54,7 @@ export const MicroComments = ({ comments, isTyping }: MicroCommentsProps) => {
   if (!visibleComment || !shouldShow) return null;
 
   return (
-    <div className="absolute top-2 left-2 pointer-events-none z-10">
+    <div className="pointer-events-none mt-2">
       <div
         className="transition-all duration-500 ease-out"
         style={{
