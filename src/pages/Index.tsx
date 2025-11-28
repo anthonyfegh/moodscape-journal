@@ -9,7 +9,7 @@ import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { ManageJournalsSidebar } from "@/components/ManageJournalsSidebar";
 import { Menu, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,9 +27,9 @@ interface LogEntry {
 const IndexContent = () => {
   const { journalId } = useParams();
   const navigate = useNavigate();
+  const { setOpen } = useSidebar();
   const [text, setText] = useState("");
   const [journalName, setJournalName] = useState("");
-  const [journalsSidebarOpen, setJournalsSidebarOpen] = useState(false);
   const [moodColor, setMoodColor] = useState("#fbbf24");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
@@ -320,6 +320,7 @@ const IndexContent = () => {
 
       // If clicked from sidebar, close sidebar and focus at end of text
       if (fromSidebar) {
+        setOpen(false);
         // Wait for next tick to ensure textarea is rendered
         setTimeout(() => {
           if (editTextareaRef.current) {
@@ -394,14 +395,9 @@ const IndexContent = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             All Journals
           </Button>
-          <Button
-            onClick={() => setJournalsSidebarOpen(!journalsSidebarOpen)}
-            variant="ghost"
-            size="sm"
-            className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
-          >
+          <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
             <Menu className="h-4 w-4" />
-          </Button>
+          </SidebarTrigger>
         </div>
 
         <div className="min-h-screen flex flex-col items-center p-8 pt-20">
@@ -497,19 +493,18 @@ const IndexContent = () => {
         </div>
       </div>
 
-      <SidebarProvider open={journalsSidebarOpen} onOpenChange={setJournalsSidebarOpen}>
-        <ManageJournalsSidebar />
-      </SidebarProvider>
-
-      <SidebarProvider defaultOpen={false}>
-        <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
-      </SidebarProvider>
+      <ManageJournalsSidebar />
+      <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
     </motion.div>
   );
 };
 
 const Index = () => {
-  return <IndexContent />;
+  return (
+    <SidebarProvider defaultOpen={false}>
+      <IndexContent />
+    </SidebarProvider>
+  );
 };
 
 export default Index;
