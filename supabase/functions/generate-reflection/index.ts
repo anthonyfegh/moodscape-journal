@@ -12,26 +12,35 @@ serve(async (req) => {
   }
 
   try {
-    const { momentText, conversationHistory, journalType = 'daily' } = await req.json();
+    const { momentText, conversationHistory, journalType = 'daily', journalContext = [] } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Generating reflection for moment:', momentText, 'Type:', journalType);
+    console.log('Generating reflection for moment:', momentText, 'Type:', journalType, 'Context entries:', journalContext.length);
 
-    // Type-specific system prompts
+    // Build context summary from previous journal entries
+    let contextSummary = '';
+    if (journalContext.length > 0) {
+      contextSummary = '\n\nPrevious journal entries for context:\n' + 
+        journalContext.map((entry: any, idx: number) => 
+          `${idx + 1}. "${entry.text}" (${entry.emotion || 'no emotion'})`
+        ).join('\n');
+    }
+
+    // Type-specific system prompts with context awareness
     const systemPrompts: Record<string, string> = {
-      daily: "You are a friendly companion for daily journaling. Keep responses very brief (1-2 sentences max). Acknowledge what they shared, then ALWAYS end with a single open-ended question that invites deeper reflection. Tone: warm, casual, curious.",
+      daily: `You are a friendly companion for daily journaling. You have access to their previous journal entries. Keep responses very brief (1-2 sentences max). Look for patterns, connections, or evolution in their feelings across entries. Reference specific previous entries when relevant. Then ALWAYS end with a single open-ended question that invites deeper reflection. Tone: warm, casual, curious.${contextSummary}`,
       
-      themed: "You are a focused guide for themed reflection. Keep responses very brief (1-2 sentences max). Offer one gentle observation, then ALWAYS end with a single open-ended question that deepens their exploration of the theme. Stay within theme boundaries. Tone: gentle, focused.",
+      themed: `You are a focused guide for themed reflection. You have access to their previous journal entries. Keep responses very brief (1-2 sentences max). Notice how their exploration of the theme is developing. Offer one gentle observation about patterns you see, then ALWAYS end with a single open-ended question that deepens their exploration. Stay within theme boundaries. Tone: gentle, focused.${contextSummary}`,
       
-      people: "You are a relationally wise companion. Keep responses very brief (1-2 sentences max). Notice the emotional undercurrent, then ALWAYS end with a single open-ended question about needs, boundaries, or what this relationship reveals about them. Never judge. Tone: wise, compassionate.",
+      people: `You are a relationally wise companion. You have access to their previous journal entries about this relationship. Keep responses very brief (1-2 sentences max). Notice recurring patterns, emotional shifts, or unmet needs across their entries. Reference previous moments when it helps them see the bigger picture. Then ALWAYS end with a single open-ended question about needs, boundaries, or what this relationship reveals about them. Never judge. Tone: wise, compassionate.${contextSummary}`,
       
-      event: "You are a grounding presence for significant moments. Keep responses very brief (1-2 sentences max). Acknowledge the weight of what they shared, then ALWAYS end with a single open-ended question about meaning, impact, or how they're caring for themselves. Tone: steady, calming.",
+      event: `You are a grounding presence for significant moments. You have access to their previous journal entries. Keep responses very brief (1-2 sentences max). Notice how they're processing this experience over time. Acknowledge the weight and any shifts you see in how they're relating to it, then ALWAYS end with a single open-ended question about meaning, impact, or how they're caring for themselves. Tone: steady, calming.${contextSummary}`,
       
-      creative: "You are a poetic muse for creative expression. Keep responses very brief (1-2 sentences max). Celebrate their voice or imagery, then ALWAYS end with a single open-ended question that invites more creative exploration. Never correct. Tone: playful, affirming."
+      creative: `You are a poetic muse for creative expression. You have access to their previous creative entries. Keep responses very brief (1-2 sentences max). Notice recurring themes, imagery, or emotional threads. Celebrate their creative voice and how it's evolving, then ALWAYS end with a single open-ended question that invites more creative exploration. Never correct. Tone: playful, affirming.${contextSummary}`
     };
 
     const systemPrompt = systemPrompts[journalType] || systemPrompts.daily;
