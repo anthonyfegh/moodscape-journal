@@ -4,9 +4,10 @@ import { useMemo } from "react";
 interface LivingBackgroundProps {
   moodColor: string;
   isTyping: boolean;
+  rippleActive?: boolean;
 }
 
-export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps) => {
+export const LivingBackground = ({ moodColor, isTyping, rippleActive = false }: LivingBackgroundProps) => {
   // Simpler tie-dye: gentle watercolor wash
   const backgroundGradients = useMemo(() => {
     const hex = moodColor.replace("#", "");
@@ -33,8 +34,8 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
       return val > mid ? Math.min(val + 80, 255) : Math.max(val - 50, 0);
     };
 
-    const intensityMultiplier = isTyping ? 1.15 : 1.0;
-    const baseOpacity = isTyping ? 1.0 : 0.85;
+    const intensityMultiplier = rippleActive ? 1.3 : isTyping ? 1.15 : 1.0;
+    const baseOpacity = rippleActive ? 1.0 : isTyping ? 1.0 : 0.85;
 
     return {
       core: `rgba(${Math.min(boost(r) * intensityMultiplier, 255)}, ${Math.min(
@@ -49,11 +50,11 @@ export const LivingBackground = ({ moodColor, isTyping }: LivingBackgroundProps)
     };
   }, [moodColor, isTyping]);
 
-  // Animation speeds
-  const mainCometDuration = isTyping ? 18 : 25;
-  const secondaryCometDuration = isTyping ? 22 : 30;
-  const tertiaryCometDuration = isTyping ? 26 : 34;
-  const quaternaryCometDuration = isTyping ? 30 : 40;
+  // Animation speeds - boost during ripple
+  const mainCometDuration = rippleActive ? 12 : isTyping ? 18 : 25;
+  const secondaryCometDuration = rippleActive ? 15 : isTyping ? 22 : 30;
+  const tertiaryCometDuration = rippleActive ? 18 : isTyping ? 26 : 34;
+  const quaternaryCometDuration = rippleActive ? 20 : isTyping ? 30 : 40;
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
