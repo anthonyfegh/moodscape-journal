@@ -758,7 +758,10 @@ const IndexContent = () => {
                                   {entry.ai_reflections.map((reflection, index) => (
                                     <Accordion type="single" collapsible key={reflection.id} defaultValue={reflection.id}>
                                       <AccordionItem value={reflection.id} className="border-none">
-                                        <AccordionTrigger className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2">
+                                        <AccordionTrigger 
+                                          className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
                                           AI Reflection
                                         </AccordionTrigger>
                                         <AccordionContent>
