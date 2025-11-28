@@ -62,8 +62,11 @@ const IndexContent = () => {
   const [momentModalOpen, setMomentModalOpen] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
+  const [replyingToReflection, setReplyingToReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
+  const [replyText, setReplyText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const replyInputRef = useRef<HTMLInputElement>(null);
 
   // Load journal and create default sub-journal if needed
   useEffect(() => {
@@ -449,6 +452,100 @@ const IndexContent = () => {
     }
   };
 
+  const handleReflectionClick = (momentId: string, reflectionId: string) => {
+    setReplyingToReflection({ momentId, reflectionId });
+    setReplyText("");
+    setTimeout(() => replyInputRef.current?.focus(), 0);
+  };
+
+  const handleReplySubmit = async (momentId: string, reflectionId: string) => {
+    if (!replyText.trim()) return;
+
+    const moment = logEntries.find(e => e.id === momentId);
+    if (!moment) return;
+
+    try {
+      // Save user reply to database
+      await journalStorage.updateAIReflectionReply(momentId, reflectionId, replyText);
+
+      // Update local state with user reply
+      setLogEntries((prev) => prev.map((entry) => {
+        if (entry.id === momentId) {
+          return {
+            ...entry,
+            ai_reflections: entry.ai_reflections?.map((r) =>
+              r.id === reflectionId ? { ...r, user_reply: replyText } : r
+            )
+          };
+        }
+        return entry;
+      }));
+
+      // Build conversation history including the new reply
+      const conversationHistory = (moment.ai_reflections || []).flatMap((r) => {
+        const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
+          { role: 'assistant', content: r.ai_text }
+        ];
+        if (r.id === reflectionId) {
+          messages.push({ role: 'user', content: replyText });
+        } else if (r.user_reply) {
+          messages.push({ role: 'user', content: r.user_reply });
+        }
+        return messages;
+      });
+
+      // Generate follow-up AI response
+      setIsGeneratingReflection(true);
+      const { data, error } = await supabase.functions.invoke('generate-reflection', {
+        body: {
+          momentText: moment.text,
+          journalType: journalType,
+          conversationHistory: [
+            { role: 'user', content: moment.text },
+            ...conversationHistory
+          ]
+        }
+      });
+
+      if (error) {
+        console.error('Error generating follow-up:', error);
+        toast.error("Failed to generate follow-up. You can still continue manually.");
+        return;
+      }
+
+      const followUp = data.reflection;
+      
+      // Save follow-up AI reflection
+      await journalStorage.addAIReflection(momentId, followUp);
+
+      // Update local state with follow-up
+      setLogEntries((prev) => prev.map((entry) => {
+        if (entry.id === momentId) {
+          return {
+            ...entry,
+            ai_reflections: [
+              ...(entry.ai_reflections || []),
+              {
+                id: crypto.randomUUID(),
+                ai_text: followUp,
+                timestamp: new Date().toISOString(),
+              }
+            ]
+          };
+        }
+        return entry;
+      }));
+
+      setReplyingToReflection(null);
+      setReplyText("");
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsGeneratingReflection(false);
+    }
+  };
+
   // Generate micro-comments periodically
   useEffect(() => {
     if (text.length < 20) return;
@@ -627,15 +724,49 @@ const IndexContent = () => {
                               {/* AI Reflections - soft, handwritten style */}
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
                                 <div className="pl-6 border-l-2 border-muted-foreground/10 space-y-3">
-                                  {entry.ai_reflections.map((reflection) => (
+                                  {entry.ai_reflections.map((reflection, index) => (
                                     <div key={reflection.id} className="space-y-2">
-                                      <p className="text-base italic text-muted-foreground/80 leading-relaxed" style={{ lineHeight: "30px" }}>
+                                      <p 
+                                        onClick={() => handleReflectionClick(entry.id, reflection.id)}
+                                        className="text-base italic text-muted-foreground/80 leading-relaxed cursor-pointer hover:text-muted-foreground transition-colors" 
+                                        style={{ lineHeight: "30px" }}
+                                      >
                                         {reflection.ai_text}
                                       </p>
                                       {reflection.user_reply && (
                                         <p className="text-base text-foreground/80 leading-relaxed pl-4" style={{ lineHeight: "30px" }}>
                                           {reflection.user_reply}
                                         </p>
+                                      )}
+                                      {/* Reply input */}
+                                      {replyingToReflection?.momentId === entry.id && 
+                                       replyingToReflection?.reflectionId === reflection.id && 
+                                       !reflection.user_reply && (
+                                        <div className="pl-4">
+                                          <input
+                                            ref={replyInputRef}
+                                            type="text"
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleReplySubmit(entry.id, reflection.id);
+                                              } else if (e.key === 'Escape') {
+                                                setReplyingToReflection(null);
+                                                setReplyText("");
+                                              }
+                                            }}
+                                            onBlur={() => {
+                                              if (!replyText.trim()) {
+                                                setReplyingToReflection(null);
+                                              }
+                                            }}
+                                            placeholder="Reply to continue the conversation..."
+                                            className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
+                                          />
+                                          <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
+                                        </div>
                                       )}
                                     </div>
                                   ))}
