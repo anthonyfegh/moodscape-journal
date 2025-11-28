@@ -455,6 +455,18 @@ const IndexContent = () => {
     setIsSelectingMoment(true);
   };
 
+  // Handle Escape key to cancel selection mode
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSelectingMoment) {
+        setIsSelectingMoment(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isSelectingMoment]);
+
   const handleMomentSelect = async (moment: LogEntry) => {
     setSelectedMoment(moment);
     setIsGeneratingReflection(true);
@@ -734,8 +746,15 @@ const IndexContent = () => {
 
               {/* Enlarged centered moments during selection */}
               {isSelectingMoment && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-                  <div className="max-h-[80vh] overflow-y-auto pointer-events-auto px-4 py-8">
+                <div 
+                  className="fixed inset-0 flex items-center justify-center z-50 pointer-events-auto"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) {
+                      setIsSelectingMoment(false);
+                    }
+                  }}
+                >
+                  <div className="max-h-[80vh] overflow-y-auto px-4 py-8">
                     <div className="space-y-6 max-w-2xl mx-auto">
                       <AnimatePresence>
                         {logEntries.map((entry, index) => (
@@ -980,14 +999,6 @@ const IndexContent = () => {
           </div>
         </div>
       </div>
-
-      {/* Click outside to exit selection mode */}
-      {isSelectingMoment && (
-        <div 
-          className="fixed inset-0 z-0 bg-black/20 backdrop-blur-sm"
-          onClick={() => setIsSelectingMoment(false)}
-        />
-      )}
 
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
     </motion.div>
