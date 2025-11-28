@@ -261,53 +261,80 @@ const IndexContent = () => {
         return;
       }
 
-      // Get default sub-journal
-      const subJournals = await journalStorage.getSubJournals(journalId);
-      if (subJournals.length === 0) return;
-      const defaultSubJournal = subJournals[0];
+      try {
+        // Get default sub-journal
+        const subJournals = await journalStorage.getSubJournals(journalId);
+        if (subJournals.length === 0) return;
+        const defaultSubJournal = subJournals[0];
 
-      // Save to database
-      const savedMoment = await journalStorage.createMoment(
-        defaultSubJournal.id,
-        contentToSave,
-        personaState,
-        moodColor,
-      );
+        // Call AI to analyze mood and get appropriate color
+        toast.loading("Analyzing your moment...", { id: 'analyzing' });
+        const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-moment', {
+          body: {
+            momentText: contentToSave,
+            journalType: journalType
+          }
+        });
 
-      // Update journal's last mood color
-      await journalStorage.updateJournal(journalId, { lastMoodColor: moodColor });
+        let aiEmotion = personaState;
+        let aiColor = moodColor;
 
-      const newEntry: LogEntry = {
-        id: savedMoment.id,
-        text: contentToSave,
-        emotion: personaState,
-        color: moodColor,
-        timestamp: new Date(),
-        ai_reflections: [],
-      };
+        if (analysisError) {
+          console.error('Error analyzing moment:', analysisError);
+          toast.dismiss('analyzing');
+          toast.error("Could not analyze mood, using current colors");
+        } else {
+          aiEmotion = analysisData.emotion || personaState;
+          aiColor = analysisData.color || moodColor;
+          toast.dismiss('analyzing');
+        }
 
-      setLogEntries((prev) => [...prev, newEntry]);
-      setText("");
-      setMicroComments([]);
-      setMemoryBubble(null);
-      setIsThinking(false);
+        // Save to database with AI-generated emotion and color
+        const savedMoment = await journalStorage.createMoment(
+          defaultSubJournal.id,
+          contentToSave,
+          aiEmotion,
+          aiColor,
+        );
 
-      // Trigger emotional ripple
-      setRippleActive(true);
-      setTimeout(() => setRippleActive(false), 2000);
+        // Update journal's last mood color
+        await journalStorage.updateJournal(journalId, { lastMoodColor: aiColor });
 
-      const typeConfig = getTypeConfig(journalType);
-      setMoodColor(typeConfig.defaultMoodColor);
-      setPersonaState("neutral");
-      setIsTyping(false);
-      setCaretPosition(null);
-      if (colorResetTimeout) {
-        clearTimeout(colorResetTimeout);
-        setColorResetTimeout(null);
-      }
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-        setTypingTimeout(null);
+        const newEntry: LogEntry = {
+          id: savedMoment.id,
+          text: contentToSave,
+          emotion: aiEmotion,
+          color: aiColor,
+          timestamp: new Date(),
+          ai_reflections: [],
+        };
+
+        setLogEntries((prev) => [...prev, newEntry]);
+        setText("");
+        setMicroComments([]);
+        setMemoryBubble(null);
+        setIsThinking(false);
+
+        // Trigger emotional ripple with AI color
+        setRippleActive(true);
+        setTimeout(() => setRippleActive(false), 2000);
+
+        const typeConfig = getTypeConfig(journalType);
+        setMoodColor(typeConfig.defaultMoodColor);
+        setPersonaState("neutral");
+        setIsTyping(false);
+        setCaretPosition(null);
+        if (colorResetTimeout) {
+          clearTimeout(colorResetTimeout);
+          setColorResetTimeout(null);
+        }
+        if (typingTimeout) {
+          clearTimeout(typingTimeout);
+          setTypingTimeout(null);
+        }
+      } catch (error) {
+        console.error('Error saving moment:', error);
+        toast.error("Failed to save moment. Please try again.");
       }
     }
   };

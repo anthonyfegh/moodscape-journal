@@ -2,3 +2,6 @@ project_id = "xzcctneupevnspkxgckb"
 
 [functions.generate-reflection]
 verify_jwt = false
+
+[functions.analyze-moment]
+verify_jwt = false
