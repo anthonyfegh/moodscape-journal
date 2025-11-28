@@ -294,6 +294,7 @@ const Index = () => {
             moodColor={moodColor}
             personaState={personaState}
             logEntries={logEntries}
+            isTyping={isTyping}
           />
 
           {/* Toggle Sidebar Button */}

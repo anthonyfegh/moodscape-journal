@@ -23,11 +23,14 @@ interface PersonaWithThoughtsProps {
   moodColor: string;
   personaState: string;
   logEntries: LogEntry[];
+  isTyping: boolean;
 }
 
-export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries }: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [shouldBlink, setShouldBlink] = useState(false);
 
   useEffect(() => {
     if (recentWords.length > 0) {
@@ -35,6 +38,27 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
       setDisplayWords((prev) => [...prev.slice(-10), lastWord]);
     }
   }, [recentWords]);
+
+  // Blink animation when not typing
+  useEffect(() => {
+    if (isTyping) {
+      setShouldBlink(false);
+      return;
+    }
+
+    const blinkInterval = setInterval(() => {
+      setShouldBlink(true);
+      setTimeout(() => setShouldBlink(false), 200);
+    }, 4000 + Math.random() * 2000); // Random between 4-6 seconds
+
+    return () => clearInterval(blinkInterval);
+  }, [isTyping]);
+
+  const handleAvatarClick = () => {
+    setIsListening(true);
+    setTimeout(() => setIsListening(false), 800);
+    setIsOpen(true);
+  };
 
   return (
     <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end">
@@ -97,28 +121,47 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
         <DialogTrigger asChild>
           <motion.div
             animate={{
-              scale: isThinking ? [1, 1.05, 1] : 1,
+              scale: isListening ? 1.08 : 1,
+              rotateZ: isTyping ? [-1, 1, -1] : 0,
+              y: isTyping ? [0, -3, 0] : 0,
             }}
             transition={{
-              duration: 1.5,
-              repeat: isThinking ? Infinity : 0,
-              repeatType: "reverse",
+              scale: { duration: 0.3, ease: "easeOut" },
+              rotateZ: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+              y: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
             }}
             className="relative cursor-pointer"
+            onClick={handleAvatarClick}
           >
-            <div
-              className="w-20 h-20 rounded-full overflow-hidden border-4 shadow-lg transition-all duration-700 hover:scale-105"
+            <motion.div
+              animate={{
+                filter: isListening ? "brightness(1.2)" : "brightness(1)",
+                boxShadow: isListening
+                  ? `0 0 50px ${moodColor}80`
+                  : `0 0 30px ${moodColor}40`,
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="w-20 h-20 rounded-full overflow-hidden border-4 transition-all duration-700 hover:scale-105"
               style={{
                 borderColor: moodColor,
-                boxShadow: `0 0 30px ${moodColor}40`,
               }}
             >
-              <img
+              <motion.img
                 src={personaAvatar}
                 alt="Reading Persona"
                 className="w-full h-full object-cover"
+                animate={{
+                  scaleY: shouldBlink ? 0.1 : 1,
+                }}
+                transition={{
+                  duration: 0.15,
+                  ease: "easeInOut",
+                }}
+                style={{
+                  transformOrigin: "center",
+                }}
               />
-            </div>
+            </motion.div>
 
             {/* Status indicator */}
             <motion.div
