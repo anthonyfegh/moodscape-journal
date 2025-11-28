@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { journalStorage, Journal, JournalType } from "@/lib/journalStorage";
 import { LivingBackground } from "@/components/LivingBackground";
 import { JournalTypeSelector } from "@/components/JournalTypeSelector";
+import { DailyLogWeekly } from "@/components/DailyLogWeekly";
 
 const journalTypeIcons = {
   daily: BookText,
@@ -155,33 +156,45 @@ const Journals = () => {
                     </div>
                     
                     <div className="grid gap-3">
-                      {typeJournals.map((journal) => {
-                        const JournalTypeIcon = journalTypeIcons[journal.type] || BookOpen;
-                        
-                        return (
-                          <Card
+                      {type === "daily" ? (
+                        // Special weekly view for daily logs
+                        typeJournals.map((journal) => (
+                          <DailyLogWeekly
                             key={journal.id}
-                            className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
-                            onClick={() => navigate(`/journal/${journal.id}`)}
-                          >
-                            <div className="flex items-center gap-4">
-                              <div
-                                className="w-3 h-3 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: journal.lastMoodColor }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-base font-semibold truncate text-foreground mb-1">
-                                  {journal.name}
-                                </h3>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  <span>Updated {formatDate(journal.updatedAt)}</span>
+                            journalId={journal.id}
+                            onLogToday={() => navigate(`/journal/${journal.id}`)}
+                          />
+                        ))
+                      ) : (
+                        // Regular cards for other journal types
+                        typeJournals.map((journal) => {
+                          const JournalTypeIcon = journalTypeIcons[journal.type] || BookOpen;
+                          
+                          return (
+                            <Card
+                              key={journal.id}
+                              className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
+                              onClick={() => navigate(`/journal/${journal.id}`)}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div
+                                  className="w-3 h-3 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: journal.lastMoodColor }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-base font-semibold truncate text-foreground mb-1">
+                                    {journal.name}
+                                  </h3>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    <span>Updated {formatDate(journal.updatedAt)}</span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </Card>
-                        );
-                      })}
+                            </Card>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 );
