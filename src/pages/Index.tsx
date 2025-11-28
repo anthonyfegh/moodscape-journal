@@ -10,7 +10,6 @@ import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { ManageJournalsSidebar } from "@/components/ManageJournalsSidebar";
 import { Menu, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { journalStorage } from "@/lib/journalStorage";
@@ -493,7 +492,6 @@ const IndexContent = () => {
         </div>
       </div>
 
-      <ManageJournalsSidebar />
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
     </motion.div>
   );

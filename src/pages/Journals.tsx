@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Clock, Menu } from "lucide-react";
+import { Plus, BookOpen, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { journalStorage, Journal } from "@/lib/journalStorage";
 import { LivingBackground } from "@/components/LivingBackground";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ManageJournalsSidebar } from "@/components/ManageJournalsSidebar";
 
-const JournalsContent = () => {
+const Journals = () => {
   const navigate = useNavigate();
   const [journals, setJournals] = useState<Journal[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -50,12 +48,6 @@ const JournalsContent = () => {
       <LivingBackground moodColor="#fbbf24" isTyping={false} rippleActive={false} />
 
       <div className="flex-1 min-h-screen relative z-10">
-        <div className="fixed top-4 right-4 z-50">
-          <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
-            <Menu className="h-4 w-4" />
-          </SidebarTrigger>
-        </div>
-
         <div className="min-h-screen flex flex-col items-center p-8">
           <div className="max-w-4xl w-full">
             <div className="mb-8">
@@ -148,17 +140,7 @@ const JournalsContent = () => {
           </div>
         </div>
       </div>
-
-      <ManageJournalsSidebar />
     </motion.div>
-  );
-};
-
-const Journals = () => {
-  return (
-    <SidebarProvider defaultOpen={false}>
-      <JournalsContent />
-    </SidebarProvider>
   );
 };
 
