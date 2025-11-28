@@ -48,12 +48,12 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
           style={{
             left: mousePosition.x,
             top: mousePosition.y,
-            width: 200,
-            height: 200,
+            width: 100,
+            height: 100,
             marginLeft: -100,
             marginTop: -100,
             background: `radial-gradient(circle, ${moodColor}40 0%, ${moodColor}20 30%, transparent 70%)`,
-            borderRadius: "10%",
+            borderRadius: "90%",
           }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
