@@ -451,15 +451,12 @@ const IndexContent = () => {
                       onClick={() => handleEditMoment(entry.id, true)}
                       className="cursor-pointer"
                     >
-                      <Card className="relative p-3 bg-background/40 backdrop-blur-sm border-border/20 hover:bg-background/60 transition-all">
-                        {/* Mood color indicator */}
-                        <div
-                          className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
-                          style={{ backgroundColor: entry.color }}
-                        />
-
+                      <Card 
+                        className="relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2"
+                        style={{ borderColor: entry.color }}
+                      >
                         {/* Content */}
-                        <div className="ml-2">
+                        <div>
                           <div className="flex items-center gap-1.5 mb-1.5 text-xs text-muted-foreground">
                             <span className="capitalize font-medium">{entry.emotion}</span>
                             <span>•</span>
