@@ -58,14 +58,12 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          transition={{ duration: 1, ease: "easeOut" }}
         />
       )}
-      
+
       {/* Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };
