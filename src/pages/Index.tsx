@@ -12,7 +12,8 @@ import { EmotionalRipple } from "@/components/EmotionalRipple";
 
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Menu, ArrowLeft, Clock } from "lucide-react";
+import { Menu, ArrowLeft, Clock, Sparkles } from "lucide-react";
+import { SummarizeModal } from "@/components/SummarizeModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { journalStorage } from "@/lib/journalStorage";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,9 @@ const IndexContent = () => {
   const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
   const [highlightedMomentId, setHighlightedMomentId] = useState<string | null>(null);
   const momentRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [entrySummary, setEntrySummary] = useState("");
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   // Load journal and create default sub-journal if needed
   useEffect(() => {
@@ -564,6 +568,49 @@ const IndexContent = () => {
     // Removed - now using hover instead
   };
 
+  const handleSummarizeEntry = async () => {
+    if (!text.trim()) {
+      toast.error("Write something first before summarizing!");
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("summarize-entry", {
+        body: { journalText: text },
+      });
+
+      if (error) {
+        console.error("Error generating summary:", error);
+        if (error.message?.includes("429")) {
+          toast.error("Too many requests. Please try again in a moment.");
+        } else if (error.message?.includes("402")) {
+          toast.error("AI credits exhausted. Please add credits to continue.");
+        } else {
+          toast.error("Failed to generate summary. Please try again.");
+        }
+        return;
+      }
+
+      setEntrySummary(data.summary);
+      setShowSummaryModal(true);
+    } catch (error) {
+      console.error("Error in summary generation:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleInsertSummary = () => {
+    setText((prev) => {
+      const separator = prev.trim() ? "\n\n" : "";
+      return `${prev}${separator}--- Summary ---\n${entrySummary}`;
+    });
+    setShowSummaryModal(false);
+    toast.success("Summary inserted into journal");
+  };
+
   const handleReplySubmit = async (momentId: string, reflectionId: string) => {
     if (!replyText.trim()) return;
 
@@ -719,9 +766,21 @@ const IndexContent = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             All Journals
           </Button>
-          <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
-            <Menu className="h-4 w-4" />
-          </SidebarTrigger>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleSummarizeEntry}
+              disabled={isGeneratingSummary || !text.trim()}
+              variant="ghost"
+              size="sm"
+              className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              {isGeneratingSummary ? "Summarizing..." : "Summarize Entry"}
+            </Button>
+            <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
+              <Menu className="h-4 w-4" />
+            </SidebarTrigger>
+          </div>
         </div>
 
         <div className="min-h-screen flex flex-col items-center p-8 pt-20">
@@ -1072,6 +1131,14 @@ const IndexContent = () => {
       </div>
 
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
+
+      {/* Summarize modal */}
+      <SummarizeModal
+        isOpen={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        summary={entrySummary}
+        onInsert={handleInsertSummary}
+      />
     </motion.div>
   );
 };
