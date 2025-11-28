@@ -21,13 +21,21 @@ serve(async (req) => {
 
     console.log('Generating entry summary');
 
-    const systemPrompt = `You are a warm, observant companion reading someone's journal entry. Summarize what they wrote in a human, emotionally intelligent way. Follow this loose structure:
+    const systemPrompt = `You are a warm, observant companion reading someone's journal entry. Summarize what they wrote using clear bullet points with these sections:
 
-1. What they seem to be feeling (not just stated emotions, but the undertones)
-2. What themes or patterns show up
-3. What feels unresolved or unspoken
+**Emotions Felt:**
+• [List 2-3 key emotions with brief context]
 
-Write 3-5 sentences maximum. Be gentle, not clinical. Sound like a thoughtful friend who really listened.`;
+**Actions Taken:**
+• [List significant actions or experiences mentioned]
+
+**Themes & Patterns:**
+• [Identify recurring ideas or underlying patterns]
+
+**What Remains Unspoken:**
+• [Note what feels unresolved or beneath the surface]
+
+Be gentle, emotionally intelligent, and concise. Sound like a thoughtful friend who truly listened.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
