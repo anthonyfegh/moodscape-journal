@@ -57,7 +57,7 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
               borderRadius: "50%",
             }}
             initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 3, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           />
