@@ -8,6 +8,7 @@ interface MicroCommentsProps {
 export const MicroComments = ({ comments, isTyping }: MicroCommentsProps) => {
   const [visibleComment, setVisibleComment] = useState<string | null>(null);
   const [shouldShow, setShouldShow] = useState(false);
+  const [typedText, setTypedText] = useState("");
 
   useEffect(() => {
     if (comments.length === 0) return;
@@ -15,7 +16,25 @@ export const MicroComments = ({ comments, isTyping }: MicroCommentsProps) => {
     const latestComment = comments[comments.length - 1];
     setVisibleComment(latestComment);
     setShouldShow(true);
+    setTypedText(""); // Reset typed text for new comment
   }, [comments]);
+
+  // Typewriter effect
+  useEffect(() => {
+    if (!visibleComment || !shouldShow || isTyping) return;
+
+    let currentIndex = 0;
+    const typeInterval = setInterval(() => {
+      if (currentIndex <= visibleComment.length) {
+        setTypedText(visibleComment.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 50); // 50ms per character
+
+    return () => clearInterval(typeInterval);
+  }, [visibleComment, shouldShow, isTyping]);
 
   // Hide when typing starts
   useEffect(() => {
@@ -43,7 +62,7 @@ export const MicroComments = ({ comments, isTyping }: MicroCommentsProps) => {
           transform: shouldShow && !isTyping ? 'translateY(0)' : 'translateY(-10px)',
         }}
       >
-        <p className="text-lg text-muted-foreground/40 italic">"{visibleComment}"</p>
+        <p className="text-lg text-muted-foreground/40 italic">"{typedText}"</p>
       </div>
     </div>
   );
