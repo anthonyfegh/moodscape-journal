@@ -27,14 +27,14 @@ export const EmotionalInkTrails = ({
   useEffect(() => {
     if (!isTyping || !caretPosition) return;
 
-    // Generate a new particle at the caret position
+    // Generate a new particle at the caret position (less frequently)
     const interval = setInterval(() => {
       const newParticle: InkParticle = {
         id: `particle-${particleIdRef.current++}`,
-        x: caretPosition.x + (Math.random() - 0.5) * 8,
-        y: caretPosition.y + (Math.random() - 0.5) * 8,
-        size: Math.random() * 6 + 3,
-        opacity: Math.random() * 0.15 + 0.05,
+        x: caretPosition.x + (Math.random() - 0.5) * 6,
+        y: caretPosition.y + (Math.random() - 0.5) * 6,
+        size: Math.random() * 3 + 2,
+        opacity: Math.random() * 0.08 + 0.02,
         rotation: Math.random() * 360,
       };
 
@@ -43,8 +43,8 @@ export const EmotionalInkTrails = ({
       // Remove particle after fade duration
       setTimeout(() => {
         setParticles((prev) => prev.filter((p) => p.id !== newParticle.id));
-      }, 1500);
-    }, 100);
+      }, 2000);
+    }, 150);
 
     return () => clearInterval(interval);
   }, [isTyping, caretPosition]);
@@ -62,14 +62,14 @@ export const EmotionalInkTrails = ({
               scale: 1,
             }}
             animate={{
-              x: particle.x + (Math.random() - 0.5) * 20,
-              y: particle.y + Math.random() * 15,
+              x: particle.x + (Math.random() - 0.5) * 15,
+              y: particle.y + Math.random() * 10,
               opacity: 0,
-              scale: 1.5,
+              scale: 1.3,
             }}
             exit={{ opacity: 0 }}
             transition={{
-              duration: 1.5,
+              duration: 2,
               ease: "easeOut",
             }}
             className="absolute rounded-full blur-sm"
