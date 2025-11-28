@@ -76,7 +76,7 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-7xl md:text-8xl lg:text-9xl font-bold mb-8 bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent"
+            className="text-7xl md:text-8xl lg:text-9xl font-bold mb-8 bg-gradient-to-br from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent font-cormorant"
             style={{
               textShadow: "0 0 40px rgba(255, 255, 255, 0.1)",
             }}
