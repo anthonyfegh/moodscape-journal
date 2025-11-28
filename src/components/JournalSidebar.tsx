@@ -42,10 +42,10 @@ export function JournalSidebar({ logEntries, onMomentClick }: JournalSidebarProp
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-all duration-300"
+                  className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-all duration-300 backdrop-blur-md"
                   style={{
-                    border: `2px solid ${entry.color}`,
-                    background: `linear-gradient(to right, white, ${entry.color}15)`,
+                    border: `1px solid ${entry.color}40`,
+                    background: `linear-gradient(135deg, rgba(255,255,255,0.1), ${entry.color}20)`,
                   }}
                   onClick={() => onMomentClick(entry.id)}
                 >
