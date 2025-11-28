@@ -9,6 +9,9 @@ import { journalStorage, Journal, JournalType } from "@/lib/journalStorage";
 import { LivingBackground } from "@/components/LivingBackground";
 import { JournalTypeSelector } from "@/components/JournalTypeSelector";
 import { DailyLogWeekly } from "@/components/DailyLogWeekly";
+import { SummarizeModal } from "@/components/SummarizeModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const journalTypeIcons = {
   daily: BookText,
@@ -33,6 +36,10 @@ const Journals = () => {
   const [newJournalName, setNewJournalName] = useState("");
   const [selectedType, setSelectedType] = useState<JournalType>("themed");
   const [dailyJournalId, setDailyJournalId] = useState<string | null>(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [entrySummary, setEntrySummary] = useState("");
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summarizingJournalId, setSummarizingJournalId] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeJournals = async () => {
@@ -80,6 +87,68 @@ const Journals = () => {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const handleSummarizeJournal = async (journalId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    
+    setSummarizingJournalId(journalId);
+    setIsGeneratingSummary(true);
+    
+    try {
+      // Get all sub-journals for this journal
+      const subJournals = await journalStorage.getSubJournals(journalId);
+      
+      if (subJournals.length === 0) {
+        toast.error("This journal has no entries yet!");
+        return;
+      }
+      
+      // Get all moments from all sub-journals
+      let allMoments: any[] = [];
+      for (const subJournal of subJournals) {
+        const moments = await journalStorage.getMoments(subJournal.id);
+        allMoments = [...allMoments, ...moments];
+      }
+      
+      if (allMoments.length === 0) {
+        toast.error("This journal has no entries to summarize!");
+        return;
+      }
+      
+      // Combine all moment texts
+      const journalText = allMoments.map(m => m.text).join("\n\n");
+      
+      const { data, error } = await supabase.functions.invoke("summarize-entry", {
+        body: { journalText },
+      });
+
+      if (error) {
+        console.error("Error generating summary:", error);
+        if (error.message?.includes("429")) {
+          toast.error("Too many requests. Please try again in a moment.");
+        } else if (error.message?.includes("402")) {
+          toast.error("AI credits exhausted. Please add credits to continue.");
+        } else {
+          toast.error("Failed to generate summary. Please try again.");
+        }
+        return;
+      }
+
+      setEntrySummary(data.summary);
+      setShowSummaryModal(true);
+    } catch (error) {
+      console.error("Error in summary generation:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
+      setSummarizingJournalId(null);
+    }
+  };
+
+  const handleInsertSummary = () => {
+    setShowSummaryModal(false);
+    toast.success("Summary generated! Open the journal to view it.");
   };
 
   return (
@@ -196,10 +265,12 @@ const Journals = () => {
                         return (
                           <Card
                             key={journal.id}
-                            className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
-                            onClick={() => navigate(`/journal/${journal.id}`)}
+                            className="p-5 hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
                           >
-                            <div className="flex items-center gap-4">
+                            <div 
+                              className="flex items-center gap-4 cursor-pointer"
+                              onClick={() => navigate(`/journal/${journal.id}`)}
+                            >
                               <div
                                 className="w-3 h-3 rounded-full flex-shrink-0"
                                 style={{ backgroundColor: journal.lastMoodColor }}
@@ -213,6 +284,16 @@ const Journals = () => {
                                   <span>Updated {formatDate(journal.updatedAt)}</span>
                                 </div>
                               </div>
+                              <Button
+                                onClick={(e) => handleSummarizeJournal(journal.id, e)}
+                                disabled={isGeneratingSummary && summarizingJournalId === journal.id}
+                                variant="ghost"
+                                size="sm"
+                                className="flex-shrink-0 bg-background/20 hover:bg-background/40"
+                              >
+                                <Sparkles className="h-4 w-4 mr-1.5" />
+                                {isGeneratingSummary && summarizingJournalId === journal.id ? "Summarizing..." : "Summarize"}
+                              </Button>
                             </div>
                           </Card>
                         );
@@ -233,6 +314,13 @@ const Journals = () => {
           </div>
         </div>
       </div>
+
+      <SummarizeModal
+        isOpen={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        summary={entrySummary}
+        onInsert={handleInsertSummary}
+      />
     </motion.div>
   );
 };
