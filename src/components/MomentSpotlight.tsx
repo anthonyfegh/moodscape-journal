@@ -52,9 +52,7 @@ export const MomentSpotlight = ({
   return (
     <div
       ref={containerRef}
-      className={`relative cursor-pointer transition-all duration-300 hover:opacity-100 opacity-90 rounded-lg px-3 py-2 -mx-3 -my-2 overflow-hidden ${
-        isSelectionMode ? 'ring-2 ring-primary/50 animate-pulse' : ''
-      }`}
+      className="relative cursor-pointer transition-all duration-300 hover:opacity-100 opacity-90 rounded-lg px-3 py-2 -mx-3 -my-2 overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
