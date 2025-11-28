@@ -14,7 +14,146 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      journals: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_mood_color: string | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_mood_color?: string | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_mood_color?: string | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moments: {
+        Row: {
+          color: string | null
+          emotion: string | null
+          id: string
+          sub_journal_id: string
+          text: string
+          timestamp: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          emotion?: string | null
+          id?: string
+          sub_journal_id: string
+          text: string
+          timestamp?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          emotion?: string | null
+          id?: string
+          sub_journal_id?: string
+          text?: string
+          timestamp?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moments_sub_journal_id_fkey"
+            columns: ["sub_journal_id"]
+            isOneToOne: false
+            referencedRelation: "sub_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      sub_journals: {
+        Row: {
+          created_at: string | null
+          id: string
+          journal_id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          journal_id: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          journal_id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_journals_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_journals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
