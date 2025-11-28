@@ -39,6 +39,7 @@ const IndexContent = () => {
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const [rippleActive, setRippleActive] = useState(false);
+  const [ripplePosition, setRipplePosition] = useState({ x: 50, y: 50 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -171,7 +172,7 @@ const IndexContent = () => {
   };
 
   // Handle Enter key to save log entry
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 
@@ -179,6 +180,43 @@ const IndexContent = () => {
       if (contentToSave.length === 0) {
         return;
       }
+
+      // Calculate ripple position at cursor location
+      const textarea = e.currentTarget;
+      const rect = textarea.getBoundingClientRect();
+      
+      // Create a temporary div to measure text position
+      const div = document.createElement('div');
+      const computed = window.getComputedStyle(textarea);
+      
+      // Copy styles
+      ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'padding', 'border'].forEach((prop) => {
+        div.style[prop as any] = computed[prop as any];
+      });
+      
+      div.style.position = 'absolute';
+      div.style.visibility = 'hidden';
+      div.style.whiteSpace = 'pre-wrap';
+      div.style.wordWrap = 'break-word';
+      div.style.width = `${textarea.clientWidth}px`;
+      
+      const textBeforeCursor = textarea.value.substring(0, textarea.selectionStart);
+      div.textContent = textBeforeCursor;
+      const span = document.createElement('span');
+      span.textContent = '|';
+      div.appendChild(span);
+      document.body.appendChild(div);
+      
+      const spanRect = span.getBoundingClientRect();
+      const x = ((spanRect.left - rect.left) / rect.width) * 100;
+      const y = ((spanRect.top - rect.top - textarea.scrollTop) / rect.height) * 100;
+      
+      document.body.removeChild(div);
+      
+      setRipplePosition({ 
+        x: Math.min(Math.max(x, 0), 100), 
+        y: Math.min(Math.max(y, 0), 100) 
+      });
 
       const newEntry: LogEntry = {
         id: Date.now().toString(),
@@ -340,7 +378,7 @@ const IndexContent = () => {
                 lineHeight: "32px",
               }}
             >
-              <EmotionalRipple isActive={rippleActive} moodColor={moodColor} />
+              <EmotionalRipple isActive={rippleActive} moodColor={moodColor} position={ripplePosition} />
               <div className="space-y-6">
                 <AnimatePresence>
                   {logEntries.map((entry) => (
