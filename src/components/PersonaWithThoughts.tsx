@@ -24,9 +24,20 @@ interface PersonaWithThoughtsProps {
   personaState: string;
   logEntries: LogEntry[];
   isTyping: boolean;
+  onEnterSelectionMode?: () => void;
+  isQuestioning?: boolean;
 }
 
-export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping }: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ 
+  isThinking, 
+  recentWords, 
+  moodColor, 
+  personaState, 
+  logEntries, 
+  isTyping,
+  onEnterSelectionMode,
+  isQuestioning = false,
+}: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -57,7 +68,12 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
   const handleAvatarClick = () => {
     setIsListening(true);
     setTimeout(() => setIsListening(false), 800);
-    setIsOpen(true);
+    
+    if (onEnterSelectionMode) {
+      onEnterSelectionMode();
+    } else {
+      setIsOpen(true);
+    }
   };
 
   return (
@@ -121,18 +137,20 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
         <DialogTrigger asChild>
           <motion.div
             animate={{
-              scale: isListening ? 1.15 : isTyping ? [1, 1.05, 1] : 1,
-              rotateZ: isTyping ? [-3, 3, -3] : 0,
-              y: isTyping ? [0, -8, 0] : 0,
+              scale: isListening ? 1.15 : isTyping || isQuestioning ? [1, 1.05, 1] : 1,
+              rotateZ: isTyping || isQuestioning ? [-3, 3, -3] : 0,
+              y: isTyping || isQuestioning ? [0, -8, 0] : 0,
+              x: isQuestioning ? [0, -5, 0] : 0,
             }}
             transition={{
               scale: { 
                 duration: isListening ? 0.4 : 1.5, 
                 ease: "easeInOut",
-                repeat: isTyping ? Infinity : 0,
+                repeat: isTyping || isQuestioning ? Infinity : 0,
               },
-              rotateZ: { duration: 2.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-              y: { duration: 2.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+              rotateZ: { duration: 2.5, repeat: isTyping || isQuestioning ? Infinity : 0, ease: "easeInOut" },
+              y: { duration: 2.5, repeat: isTyping || isQuestioning ? Infinity : 0, ease: "easeInOut" },
+              x: { duration: 2, repeat: isQuestioning ? Infinity : 0, ease: "easeInOut" },
             }}
             className="relative cursor-pointer"
             onClick={handleAvatarClick}
