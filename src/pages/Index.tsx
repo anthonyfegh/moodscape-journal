@@ -485,10 +485,20 @@ const IndexContent = () => {
     }, 100);
 
     try {
+      // Prepare journal context - all previous moments except the current one
+      const journalContext = logEntries
+        .filter(e => e.id !== moment.id)
+        .map(e => ({
+          text: e.text,
+          emotion: e.emotion,
+          timestamp: e.timestamp
+        }));
+
       const { data, error } = await supabase.functions.invoke('generate-reflection', {
         body: {
           momentText: moment.text,
           journalType: journalType,
+          journalContext: journalContext,
           conversationHistory: (moment.ai_reflections || []).flatMap((r) => [
             { role: 'user', content: moment.text },
             { role: 'assistant', content: r.ai_text },
