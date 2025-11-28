@@ -14,12 +14,14 @@ interface EmotionalInkTrailsProps {
   isTyping: boolean;
   moodColor: string;
   caretPosition: { x: number; y: number } | null;
+  strengthMultiplier?: number;
 }
 
 export const EmotionalInkTrails = ({
   isTyping,
   moodColor,
   caretPosition,
+  strengthMultiplier = 1.0,
 }: EmotionalInkTrailsProps) => {
   const [particles, setParticles] = useState<InkParticle[]>([]);
   const particleIdRef = useRef(0);
@@ -28,13 +30,16 @@ export const EmotionalInkTrails = ({
     if (!isTyping || !caretPosition) return;
 
     // Generate a new particle at the caret position (less frequently)
+    const baseInterval = 150;
+    const adjustedInterval = baseInterval / strengthMultiplier; // Stronger trails = more frequent
+    
     const interval = setInterval(() => {
       const newParticle: InkParticle = {
         id: `particle-${particleIdRef.current++}`,
         x: caretPosition.x + (Math.random() - 0.5) * 6,
         y: caretPosition.y + (Math.random() - 0.5) * 6,
-        size: Math.random() * 4 + 4,
-        opacity: Math.random() * 0.15 + 0.08,
+        size: (Math.random() * 4 + 4) * strengthMultiplier,
+        opacity: (Math.random() * 0.15 + 0.08) * strengthMultiplier,
         rotation: Math.random() * 360,
       };
 
@@ -44,10 +49,10 @@ export const EmotionalInkTrails = ({
       setTimeout(() => {
         setParticles((prev) => prev.filter((p) => p.id !== newParticle.id));
       }, 2000);
-    }, 150);
+    }, adjustedInterval);
 
     return () => clearInterval(interval);
-  }, [isTyping, caretPosition]);
+  }, [isTyping, caretPosition, strengthMultiplier]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">

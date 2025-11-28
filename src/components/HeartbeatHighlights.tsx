@@ -5,9 +5,16 @@ interface HeartbeatHighlightsProps {
   wordFrequency: Map<string, number>;
   moodColor: string;
   threshold?: number;
+  intensityMultiplier?: number;
 }
 
-export const HeartbeatHighlights = ({ text, wordFrequency, moodColor, threshold = 2 }: HeartbeatHighlightsProps) => {
+export const HeartbeatHighlights = ({ 
+  text, 
+  wordFrequency, 
+  moodColor, 
+  threshold = 2,
+  intensityMultiplier = 1.0 
+}: HeartbeatHighlightsProps) => {
   // Convert hex to rgba with low opacity
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -44,14 +51,14 @@ export const HeartbeatHighlights = ({ text, wordFrequency, moodColor, threshold 
               key={`word-${currentIndex}`}
               animate={{
                 textShadow: [
-                  `0 0 2px ${highlightColor}`,
-                  `0 0 6px ${highlightColor}, 0 0 10px ${highlightColor}`,
-                  `0 0 2px ${highlightColor}`,
+                  `0 0 ${2 * intensityMultiplier}px ${highlightColor}`,
+                  `0 0 ${6 * intensityMultiplier}px ${highlightColor}, 0 0 ${10 * intensityMultiplier}px ${highlightColor}`,
+                  `0 0 ${2 * intensityMultiplier}px ${highlightColor}`,
                 ],
                 opacity: [0.85, 1, 0.85],
               }}
               transition={{
-                duration: 3,
+                duration: 3 / intensityMultiplier,
                 repeat: Infinity,
                 ease: "easeInOut",
                 times: [0, 0.5, 1],

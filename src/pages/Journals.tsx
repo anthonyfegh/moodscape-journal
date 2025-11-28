@@ -1,18 +1,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Clock } from "lucide-react";
+import { Plus, BookOpen, Clock, BookText, Lightbulb, Users, Zap, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { journalStorage, Journal } from "@/lib/journalStorage";
+import { journalStorage, Journal, JournalType } from "@/lib/journalStorage";
 import { LivingBackground } from "@/components/LivingBackground";
+import { JournalTypeSelector } from "@/components/JournalTypeSelector";
+
+const journalTypeIcons = {
+  daily: BookText,
+  themed: Lightbulb,
+  people: Users,
+  event: Zap,
+  creative: Sparkles,
+};
 
 const Journals = () => {
   const navigate = useNavigate();
   const [journals, setJournals] = useState<Journal[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newJournalName, setNewJournalName] = useState("");
+  const [selectedType, setSelectedType] = useState<JournalType>("daily");
 
   useEffect(() => {
     setJournals(journalStorage.getJournals());
@@ -20,9 +30,10 @@ const Journals = () => {
 
   const handleCreateJournal = () => {
     if (newJournalName.trim()) {
-      const newJournal = journalStorage.createJournal(newJournalName.trim());
+      const newJournal = journalStorage.createJournal(newJournalName.trim(), selectedType);
       setJournals(journalStorage.getJournals());
       setNewJournalName("");
+      setSelectedType("daily");
       setIsCreating(false);
       navigate(`/journal/${newJournal.id}`);
     }
@@ -59,6 +70,12 @@ const Journals = () => {
               {isCreating ? (
                 <div className="bg-background/60 backdrop-blur-md rounded-lg p-6 shadow-md border border-border/10">
                   <h3 className="text-lg font-medium mb-4 text-foreground">Create New Journal</h3>
+                  
+                  <JournalTypeSelector
+                    selectedType={selectedType}
+                    onSelectType={setSelectedType}
+                  />
+                  
                   <Input
                     value={newJournalName}
                     onChange={(e) => setNewJournalName(e.target.value)}
@@ -67,6 +84,7 @@ const Journals = () => {
                       if (e.key === "Escape") {
                         setIsCreating(false);
                         setNewJournalName("");
+                        setSelectedType("daily");
                       }
                     }}
                     placeholder="Journal name..."
@@ -82,6 +100,7 @@ const Journals = () => {
                       onClick={() => {
                         setIsCreating(false);
                         setNewJournalName("");
+                        setSelectedType("daily");
                       }}
                     >
                       Cancel
@@ -102,32 +121,36 @@ const Journals = () => {
             </div>
 
             <div className="grid gap-4">
-              {journals.map((journal) => (
-                <Card
-                  key={journal.id}
-                  className="p-6 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
-                  onClick={() => navigate(`/journal/${journal.id}`)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-4 h-4 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: journal.lastMoodColor }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="text-lg font-semibold truncate text-foreground">
-                          {journal.name}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>Updated {formatDate(journal.updatedAt)}</span>
+              {journals.map((journal) => {
+                const TypeIcon = journalTypeIcons[journal.type] || BookOpen;
+                
+                return (
+                  <Card
+                    key={journal.id}
+                    className="p-6 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
+                    onClick={() => navigate(`/journal/${journal.id}`)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: journal.lastMoodColor }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                          <h3 className="text-lg font-semibold truncate text-foreground">
+                            {journal.name}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>Updated {formatDate(journal.updatedAt)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
 
               {journals.length === 0 && !isCreating && (
                 <div className="text-center py-12 text-muted-foreground bg-background/40 backdrop-blur-md rounded-lg border border-border/10">
