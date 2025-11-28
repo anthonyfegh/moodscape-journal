@@ -7,6 +7,7 @@ import { LivingBackground } from "@/components/LivingBackground";
 import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
+import { EmotionalRipple } from "@/components/EmotionalRipple";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +38,7 @@ const IndexContent = () => {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
+  const [rippleActive, setRippleActive] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -191,6 +193,11 @@ const IndexContent = () => {
       setMicroComments([]);
       setMemoryBubble(null);
       setIsThinking(false);
+      
+      // Trigger emotional ripple
+      setRippleActive(true);
+      setTimeout(() => setRippleActive(false), 2000);
+      
       setMoodColor("#fbbf24");
       setPersonaState("neutral");
       setIsTyping(false);
@@ -300,7 +307,7 @@ const IndexContent = () => {
 
   return (
       <div className="min-h-screen flex w-full relative">
-        <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} />
+        <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
 
         <div className="flex-1 min-h-screen relative z-10">
           <PersonaWithThoughts
@@ -326,13 +333,14 @@ const IndexContent = () => {
 
               {/* Continuous Writing Surface - like a sheet of paper */}
               <div
-                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10"
+                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
                   lineHeight: "32px",
                 }}
               >
+                <EmotionalRipple isActive={rippleActive} moodColor={moodColor} />
                 <div className="space-y-6">
                   <AnimatePresence>
                     {logEntries.map((entry) => (
