@@ -11,6 +11,12 @@ import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
 import { MomentSelectionModal } from "@/components/MomentSelectionModal";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Menu, ArrowLeft, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { journalStorage } from "@/lib/journalStorage";
@@ -750,50 +756,58 @@ const IndexContent = () => {
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
                                 <div className="pl-6 border-l-2 border-muted-foreground/10 space-y-3">
                                   {entry.ai_reflections.map((reflection, index) => (
-                                    <div 
-                                      key={reflection.id} 
-                                      className="space-y-2"
-                                      onMouseEnter={() => !reflection.user_reply && setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })}
-                                      onMouseLeave={() => setHoveredReflection(null)}
-                                    >
-                                      <p 
-                                        className="text-base italic text-muted-foreground/80 leading-relaxed hover:text-muted-foreground transition-colors" 
-                                        style={{ lineHeight: "30px" }}
-                                      >
-                                        {reflection.ai_text}
-                                      </p>
-                                      {reflection.user_reply && (
-                                        <p className="text-base text-foreground/80 leading-relaxed pl-4" style={{ lineHeight: "30px" }}>
-                                          {reflection.user_reply}
-                                        </p>
-                                      )}
-                                      {/* Reply input - appears on hover */}
-                                      {hoveredReflection?.momentId === entry.id && 
-                                       hoveredReflection?.reflectionId === reflection.id && 
-                                       !reflection.user_reply && (
-                                         <div className="pl-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-                                           <input
-                                             ref={replyInputRef}
-                                             type="text"
-                                             value={replyText}
-                                             onChange={(e) => setReplyText(e.target.value)}
-                                             onClick={(e) => e.stopPropagation()}
-                                             onKeyDown={(e) => {
-                                               if (e.key === 'Enter') {
-                                                 e.preventDefault();
-                                                 handleReplySubmit(entry.id, reflection.id);
-                                               } else if (e.key === 'Escape') {
-                                                 setHoveredReflection(null);
-                                                 setReplyText("");
-                                               }
-                                             }}
-                                             placeholder="Reply to continue the conversation..."
-                                             className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
-                                           />
-                                           <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
-                                         </div>
-                                       )}
-                                    </div>
+                                    <Accordion type="single" collapsible key={reflection.id} defaultValue={reflection.id}>
+                                      <AccordionItem value={reflection.id} className="border-none">
+                                        <AccordionTrigger className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2">
+                                          AI Reflection
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                          <div 
+                                            className="space-y-2"
+                                            onMouseEnter={() => !reflection.user_reply && setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })}
+                                            onMouseLeave={() => setHoveredReflection(null)}
+                                          >
+                                            <p 
+                                              className="text-base italic text-muted-foreground/80 leading-relaxed hover:text-muted-foreground transition-colors" 
+                                              style={{ lineHeight: "30px" }}
+                                            >
+                                              {reflection.ai_text}
+                                            </p>
+                                            {reflection.user_reply && (
+                                              <p className="text-base text-foreground/80 leading-relaxed pl-4" style={{ lineHeight: "30px" }}>
+                                                {reflection.user_reply}
+                                              </p>
+                                            )}
+                                            {/* Reply input - appears on hover */}
+                                            {hoveredReflection?.momentId === entry.id && 
+                                             hoveredReflection?.reflectionId === reflection.id && 
+                                             !reflection.user_reply && (
+                                               <div className="pl-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                                                 <input
+                                                   ref={replyInputRef}
+                                                   type="text"
+                                                   value={replyText}
+                                                   onChange={(e) => setReplyText(e.target.value)}
+                                                   onClick={(e) => e.stopPropagation()}
+                                                   onKeyDown={(e) => {
+                                                     if (e.key === 'Enter') {
+                                                       e.preventDefault();
+                                                       handleReplySubmit(entry.id, reflection.id);
+                                                     } else if (e.key === 'Escape') {
+                                                       setHoveredReflection(null);
+                                                       setReplyText("");
+                                                     }
+                                                   }}
+                                                   placeholder="Reply to continue the conversation..."
+                                                   className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
+                                                 />
+                                                 <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
+                                               </div>
+                                             )}
+                                          </div>
+                                        </AccordionContent>
+                                      </AccordionItem>
+                                    </Accordion>
                                   ))}
                                 </div>
                               )}
