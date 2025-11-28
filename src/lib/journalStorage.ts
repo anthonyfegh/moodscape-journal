@@ -26,6 +26,14 @@ export interface Moment {
   emotion: string;
   color: string;
   timestamp: string;
+  ai_reflections?: AIReflection[];
+}
+
+export interface AIReflection {
+  id: string;
+  ai_text: string;
+  user_reply?: string;
+  timestamp: string;
 }
 
 export const journalStorage = {
@@ -234,6 +242,7 @@ export const journalStorage = {
       emotion: m.emotion || "",
       color: m.color || "#fbbf24",
       timestamp: m.timestamp || new Date().toISOString(),
+      ai_reflections: (m.ai_reflections as any[]) || [],
     }));
   },
 
@@ -283,6 +292,75 @@ export const journalStorage = {
 
     if (error) {
       console.error("Error deleting moment:", error);
+    }
+  },
+
+  // AI Reflections
+  async addAIReflection(
+    momentId: string,
+    aiText: string,
+    userReply?: string
+  ): Promise<void> {
+    const { data: moment, error: fetchError } = await supabase
+      .from("moments")
+      .select("ai_reflections")
+      .eq("id", momentId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching moment for AI reflection:", fetchError);
+      throw fetchError;
+    }
+
+    const reflections = (moment.ai_reflections as any[]) || [];
+    const newReflection = {
+      id: crypto.randomUUID(),
+      ai_text: aiText,
+      user_reply: userReply,
+      timestamp: new Date().toISOString(),
+    };
+
+    const { error: updateError } = await supabase
+      .from("moments")
+      .update({
+        ai_reflections: [...reflections, newReflection] as any,
+      })
+      .eq("id", momentId);
+
+    if (updateError) {
+      console.error("Error adding AI reflection:", updateError);
+      throw updateError;
+    }
+  },
+
+  async updateAIReflectionReply(
+    momentId: string,
+    reflectionId: string,
+    userReply: string
+  ): Promise<void> {
+    const { data: moment, error: fetchError } = await supabase
+      .from("moments")
+      .select("ai_reflections")
+      .eq("id", momentId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching moment for reply update:", fetchError);
+      throw fetchError;
+    }
+
+    const reflections = ((moment.ai_reflections as any[]) || []).map((r: any) =>
+      r.id === reflectionId ? { ...r, user_reply: userReply } : r
+    );
+
+    const { error: updateError } = await supabase
+      .from("moments")
+      .update({ ai_reflections: reflections as any })
+      .eq("id", momentId);
+
+    if (updateError) {
+      console.error("Error updating AI reflection reply:", updateError);
+      throw updateError;
     }
   },
 };
