@@ -12,19 +12,34 @@ serve(async (req) => {
   }
 
   try {
-    const { momentText, conversationHistory } = await req.json();
+    const { momentText, conversationHistory, journalType = 'daily' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Generating reflection for moment:', momentText);
+    console.log('Generating reflection for moment:', momentText, 'Type:', journalType);
+
+    // Type-specific system prompts
+    const systemPrompts: Record<string, string> = {
+      daily: "You are a friendly, observational companion for daily journaling. Keep responses concise and supportive (2-3 sentences). Notice patterns when they emerge, but stay casual and light. Avoid deep analysis unless recurring themes appear. Tone: warm friend checking in.",
+      
+      themed: "You are a structured, introspective guide for themed reflection. Ask short, focused questions that keep the user exploring their chosen theme. Stay within the theme's boundaries—don't suggest unrelated topics. Use guiding questions to create a reflective loop. Tone: gentle but focused.",
+      
+      people: "You are a relationally intelligent companion helping process connections with others. Notice recurring names and ask about unmet needs, boundaries, or intentions. Offer perspective without judgment. Help the user see relationship patterns clearly. Tone: emotionally wise, never critical.",
+      
+      event: "You are a grounding presence helping process significant emotional moments. Ask about meaning, impact, and healthy coping. Help the user slow down and breathe through intensity. Avoid overwhelming with too many questions—one thoughtful prompt at a time. Tone: steady, calming anchor.",
+      
+      creative: "You are a poetic, open-ended muse for creative expression. Encourage imagery, metaphor, and emotional exploration. Never correct the user's creative choices. Offer inspiration seeds when asked, celebrate their voice. Tone: playful, imaginative, affirming."
+    };
+
+    const systemPrompt = systemPrompts[journalType] || systemPrompts.daily;
 
     const messages = [
       {
         role: 'system',
-        content: 'You are a gentle, thoughtful companion for a personal journal. When reflecting on moments, offer soft insights, emotional questions, or gentle perspectives that help deepen self-understanding. Keep responses brief (2-3 sentences max), warm, and non-judgmental. Write as if you\'re a caring friend writing thoughtful notes in their journal.'
+        content: systemPrompt
       },
       ...(conversationHistory || []),
       {
