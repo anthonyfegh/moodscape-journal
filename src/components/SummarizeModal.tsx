@@ -14,7 +14,7 @@ export const SummarizeModal = ({ isOpen, onClose, summary, onInsert, moodColor =
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-3xl bg-background/95 backdrop-blur-2xl rounded-2xl shadow-2xl border-2"
+        className="max-w-3xl max-h-[85vh] overflow-y-auto bg-background/95 backdrop-blur-2xl rounded-2xl shadow-2xl border-2 fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50"
         style={{ 
           borderColor: moodColor,
           boxShadow: `0 0 40px ${moodColor}40, 0 20px 60px rgba(0,0,0,0.3)`
@@ -23,7 +23,7 @@ export const SummarizeModal = ({ isOpen, onClose, summary, onInsert, moodColor =
         <div className="relative">
           <button
             onClick={onClose}
-            className="absolute -top-3 -right-3 p-2 rounded-full backdrop-blur-sm transition-all hover:scale-110"
+            className="absolute -top-3 -right-3 p-2 rounded-full backdrop-blur-sm transition-all hover:scale-110 z-10"
             style={{ 
               backgroundColor: `${moodColor}20`,
               border: `1px solid ${moodColor}40`
@@ -44,7 +44,7 @@ export const SummarizeModal = ({ isOpen, onClose, summary, onInsert, moodColor =
             </div>
             
             <div 
-              className="rounded-xl p-6 prose prose-sm max-w-none"
+              className="rounded-xl p-6 prose prose-sm max-w-none max-h-[50vh] overflow-y-auto"
               style={{ 
                 backgroundColor: `${moodColor}10`,
                 border: `1px solid ${moodColor}20`
