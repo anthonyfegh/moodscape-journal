@@ -6,6 +6,7 @@ import { JournalSidebar } from "@/components/JournalSidebar";
 import { LivingBackground } from "@/components/LivingBackground";
 import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
+import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -327,48 +328,45 @@ const Index = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="group cursor-pointer transition-all duration-300 hover:opacity-100 opacity-90 rounded-lg px-3 py-2 -mx-3 -my-2"
-                        style={{
-                          transition: "all 0.3s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${entry.color}15`;
-                          e.currentTarget.style.borderLeft = `3px ${entry.color}`;
-                          setHoveredMoodColor(entry.color);
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
-                          e.currentTarget.style.borderLeft = "3px solid transparent";
-                          setHoveredMoodColor(null);
-                        }}
-                        onClick={() => editingMomentId !== entry.id && handleEditMoment(entry.id)}
                       >
-                        {editingMomentId === entry.id ? (
-                          <textarea
-                            value={editingText}
-                            onChange={(e) => setEditingText(e.target.value)}
-                            onBlur={() => handleSaveEdit(entry.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSaveEdit(entry.id);
-                              }
-                            }}
-                            className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
-                            rows={4}
-                            autoFocus
-                            style={{ lineHeight: "32px" }}
-                          />
-                        ) : (
-                          <div className="relative">
-                            <p
-                              className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
+                        <MomentSpotlight
+                          moodColor={entry.color}
+                          onMomentClick={() => {
+                            if (editingMomentId !== entry.id) {
+                              handleEditMoment(entry.id);
+                            }
+                          }}
+                          onHoverChange={(isHovering) => {
+                            setHoveredMoodColor(isHovering ? entry.color : null);
+                          }}
+                        >
+                          {editingMomentId === entry.id ? (
+                            <textarea
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              onBlur={() => handleSaveEdit(entry.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSaveEdit(entry.id);
+                                }
+                              }}
+                              className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
+                              rows={4}
+                              autoFocus
                               style={{ lineHeight: "32px" }}
-                            >
-                              {entry.text}
-                            </p>
-                          </div>
-                        )}
+                            />
+                          ) : (
+                            <div className="relative">
+                              <p
+                                className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
+                                style={{ lineHeight: "32px" }}
+                              >
+                                {entry.text}
+                              </p>
+                            </div>
+                          )}
+                        </MomentSpotlight>
                       </motion.div>
                     ))}
                   </AnimatePresence>
