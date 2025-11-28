@@ -207,9 +207,7 @@ const IndexContent = () => {
       // Generate micro-comments based on journal type
       const typeConfig = getTypeConfig(journalType);
       if (journalType === "themed" && typeConfig.guidingPrompts && completedWords.length > 5) {
-        const randomPrompt = typeConfig.guidingPrompts[
-          Math.floor(Math.random() * typeConfig.guidingPrompts.length)
-        ];
+        const randomPrompt = typeConfig.guidingPrompts[Math.floor(Math.random() * typeConfig.guidingPrompts.length)];
         setMicroComments([randomPrompt]);
       } else if (completedWords.length > 3) {
         const lastWord = completedWords[completedWords.length - 1].toLowerCase();
@@ -255,7 +253,7 @@ const IndexContent = () => {
         defaultSubJournal.id,
         contentToSave,
         personaState,
-        moodColor
+        moodColor,
       );
 
       // Update journal's last mood color
@@ -440,9 +438,6 @@ const IndexContent = () => {
             <div className="grid grid-cols-[400px_1fr] gap-6">
               {/* Left column: Inline Moments */}
               <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Your Moments
-                </h2>
                 <AnimatePresence>
                   {logEntries.map((entry, index) => (
                     <motion.div
