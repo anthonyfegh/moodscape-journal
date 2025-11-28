@@ -48,8 +48,8 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
 
     const blinkInterval = setInterval(() => {
       setShouldBlink(true);
-      setTimeout(() => setShouldBlink(false), 200);
-    }, 4000 + Math.random() * 2000); // Random between 4-6 seconds
+      setTimeout(() => setShouldBlink(false), 180);
+    }, 3000 + Math.random() * 1500); // Random between 3-4.5 seconds
 
     return () => clearInterval(blinkInterval);
   }, [isTyping]);
@@ -121,26 +121,30 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
         <DialogTrigger asChild>
           <motion.div
             animate={{
-              scale: isListening ? 1.08 : 1,
-              rotateZ: isTyping ? [-1, 1, -1] : 0,
-              y: isTyping ? [0, -3, 0] : 0,
+              scale: isListening ? 1.15 : isTyping ? [1, 1.05, 1] : 1,
+              rotateZ: isTyping ? [-3, 3, -3] : 0,
+              y: isTyping ? [0, -8, 0] : 0,
             }}
             transition={{
-              scale: { duration: 0.3, ease: "easeOut" },
-              rotateZ: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-              y: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+              scale: { 
+                duration: isListening ? 0.4 : 1.5, 
+                ease: "easeInOut",
+                repeat: isTyping ? Infinity : 0,
+              },
+              rotateZ: { duration: 2.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+              y: { duration: 2.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
             }}
             className="relative cursor-pointer"
             onClick={handleAvatarClick}
           >
             <motion.div
               animate={{
-                filter: isListening ? "brightness(1.2)" : "brightness(1)",
+                filter: isListening ? "brightness(1.4)" : "brightness(1)",
                 boxShadow: isListening
-                  ? `0 0 50px ${moodColor}80`
+                  ? `0 0 80px ${moodColor}, 0 0 40px ${moodColor}80`
                   : `0 0 30px ${moodColor}40`,
               }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="w-20 h-20 rounded-full overflow-hidden border-4 transition-all duration-700 hover:scale-105"
               style={{
                 borderColor: moodColor,
@@ -151,10 +155,10 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
                 alt="Reading Persona"
                 className="w-full h-full object-cover"
                 animate={{
-                  scaleY: shouldBlink ? 0.1 : 1,
+                  scaleY: shouldBlink ? 0.05 : 1,
                 }}
                 transition={{
-                  duration: 0.15,
+                  duration: 0.12,
                   ease: "easeInOut",
                 }}
                 style={{
