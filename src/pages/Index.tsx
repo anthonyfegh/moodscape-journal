@@ -213,17 +213,9 @@ const Index = () => {
     // Create a temporary span to measure caret position
     const div = document.createElement("div");
     const style = window.getComputedStyle(textarea);
-    
+
     // Copy relevant styles
-    [
-      "fontFamily",
-      "fontSize",
-      "fontWeight",
-      "lineHeight",
-      "letterSpacing",
-      "padding",
-      "border",
-    ].forEach((prop) => {
+    ["fontFamily", "fontSize", "fontWeight", "lineHeight", "letterSpacing", "padding", "border"].forEach((prop) => {
       div.style[prop as any] = style[prop as any];
     });
 
@@ -395,16 +387,12 @@ const Index = () => {
                       onKeyDown={handleKeyDown}
                       onSelect={updateCaretPosition}
                       onClick={updateCaretPosition}
-                      placeholder="Continue writing..."
+                      placeholder=""
                       className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
                       rows={6}
                       style={{ lineHeight: "32px" }}
                     />
-                    <EmotionalInkTrails
-                      isTyping={isTyping}
-                      moodColor={moodColor}
-                      caretPosition={caretPosition}
-                    />
+                    <EmotionalInkTrails isTyping={isTyping} moodColor={moodColor} caretPosition={caretPosition} />
                     <MicroComments comments={microComments} isTyping={isTyping} />
                     <MemoryBubbles memory={memoryBubble} />
                   </div>
