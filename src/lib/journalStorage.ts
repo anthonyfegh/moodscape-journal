@@ -1,6 +1,9 @@
+export type JournalType = "daily" | "themed" | "people" | "event" | "creative";
+
 export interface Journal {
   id: string;
   name: string;
+  type: JournalType;
   lastMoodColor: string;
   createdAt: string;
   updatedAt: string;
@@ -38,11 +41,12 @@ export const journalStorage = {
     return this.getJournals().find((j) => j.id === id);
   },
 
-  createJournal(name: string): Journal {
+  createJournal(name: string, type: JournalType = "daily"): Journal {
     const journals = this.getJournals();
     const newJournal: Journal = {
       id: Date.now().toString(),
       name,
+      type,
       lastMoodColor: "#fbbf24",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

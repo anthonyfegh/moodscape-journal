@@ -5,9 +5,10 @@ interface LivingBackgroundProps {
   moodColor: string;
   isTyping: boolean;
   rippleActive?: boolean;
+  intensityMultiplier?: number;
 }
 
-export const LivingBackground = ({ moodColor, isTyping, rippleActive = false }: LivingBackgroundProps) => {
+export const LivingBackground = ({ moodColor, isTyping, rippleActive = false, intensityMultiplier = 1.0 }: LivingBackgroundProps) => {
   // Simpler tie-dye: gentle watercolor wash
   const backgroundGradients = useMemo(() => {
     const hex = moodColor.replace("#", "");
@@ -34,27 +35,29 @@ export const LivingBackground = ({ moodColor, isTyping, rippleActive = false }: 
       return val > mid ? Math.min(val + 80, 255) : Math.max(val - 50, 0);
     };
 
-    const intensityMultiplier = rippleActive ? 1.3 : isTyping ? 1.15 : 1.0;
+    const baseIntensity = rippleActive ? 1.3 : isTyping ? 1.15 : 1.0;
+    const finalIntensity = baseIntensity * intensityMultiplier;
     const baseOpacity = rippleActive ? 1.0 : isTyping ? 1.0 : 0.85;
 
     return {
-      core: `rgba(${Math.min(boost(r) * intensityMultiplier, 255)}, ${Math.min(
-        boost(g) * intensityMultiplier,
+      core: `rgba(${Math.min(boost(r) * finalIntensity, 255)}, ${Math.min(
+        boost(g) * finalIntensity,
         255,
-      )}, ${Math.min(boost(b) * intensityMultiplier, 255)}, ${baseOpacity})`,
-      middle: `rgba(${Math.min(boost(r) * intensityMultiplier, 255)}, ${Math.min(
-        boost(g) * intensityMultiplier,
+      )}, ${Math.min(boost(b) * finalIntensity, 255)}, ${baseOpacity})`,
+      middle: `rgba(${Math.min(boost(r) * finalIntensity, 255)}, ${Math.min(
+        boost(g) * finalIntensity,
         255,
-      )}, ${Math.min(boost(b) * intensityMultiplier, 255)}, ${isTyping ? 0.65 : 0.55})`,
+      )}, ${Math.min(boost(b) * finalIntensity, 255)}, ${isTyping ? 0.65 : 0.55})`,
       outer: `rgba(${r}, ${g}, ${b}, ${isTyping ? 0.35 : 0.25})`,
     };
-  }, [moodColor, isTyping]);
+  }, [moodColor, isTyping, rippleActive, intensityMultiplier]);
 
-  // Animation speeds - boost during ripple
-  const mainCometDuration = rippleActive ? 12 : isTyping ? 18 : 25;
-  const secondaryCometDuration = rippleActive ? 15 : isTyping ? 22 : 30;
-  const tertiaryCometDuration = rippleActive ? 18 : isTyping ? 26 : 34;
-  const quaternaryCometDuration = rippleActive ? 20 : isTyping ? 30 : 40;
+  // Animation speeds - boost during ripple and adjust by type intensity
+  const speedAdjustment = 1 / intensityMultiplier; // Higher intensity = faster comets
+  const mainCometDuration = (rippleActive ? 12 : isTyping ? 18 : 25) * speedAdjustment;
+  const secondaryCometDuration = (rippleActive ? 15 : isTyping ? 22 : 30) * speedAdjustment;
+  const tertiaryCometDuration = (rippleActive ? 18 : isTyping ? 26 : 34) * speedAdjustment;
+  const quaternaryCometDuration = (rippleActive ? 20 : isTyping ? 30 : 40) * speedAdjustment;
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">

@@ -14,6 +14,7 @@ import { Menu, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { journalStorage } from "@/lib/journalStorage";
 import { Button } from "@/components/ui/button";
+import { getTypeConfig } from "@/lib/journalTypeConfig";
 
 interface LogEntry {
   id: string;
@@ -29,6 +30,7 @@ const IndexContent = () => {
   const { setOpen } = useSidebar();
   const [text, setText] = useState("");
   const [journalName, setJournalName] = useState("");
+  const [journalType, setJournalType] = useState<"daily" | "themed" | "people" | "event" | "creative">("daily");
   const [moodColor, setMoodColor] = useState("#fbbf24");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
@@ -62,6 +64,7 @@ const IndexContent = () => {
     }
 
     setJournalName(journal.name);
+    setJournalType(journal.type);
 
     // Get or create default sub-journal
     let subJournals = journalStorage.getSubJournals(journalId);
@@ -97,6 +100,7 @@ const IndexContent = () => {
   // Analyze text and update mood
   const analyzeMood = useCallback(
     (content: string) => {
+      const typeConfig = getTypeConfig(journalType);
       const lowerText = content.toLowerCase();
       const words = content.split(/\s+/).filter((w) => w.length > 0);
 
@@ -113,8 +117,8 @@ const IndexContent = () => {
       let calmScore = calmWords.filter((w) => lowerText.includes(w)).length;
       let anxiousScore = anxiousWords.filter((w) => lowerText.includes(w)).length;
 
-      // Determine dominant emotion and set color
-      const emotions = [
+      // Use theme colors for themed journals if available
+      const baseEmotions = [
         { name: "joyful", score: joyScore, color: "#fbbf24" },
         { name: "melancholic", score: sadScore, color: "#60a5fa" },
         { name: "intense", score: angryScore, color: "#f87171" },
@@ -122,7 +126,7 @@ const IndexContent = () => {
         { name: "restless", score: anxiousScore, color: "#a78bfa" },
       ];
 
-      const dominant = emotions.reduce((prev, curr) => (curr.score > prev.score ? curr : prev));
+      const dominant = baseEmotions.reduce((prev, curr) => (curr.score > prev.score ? curr : prev));
 
       if (dominant.score > 0) {
         setMoodColor(dominant.color);
@@ -131,12 +135,10 @@ const IndexContent = () => {
         setMoodColor("#4ade80");
         setPersonaState("reflective");
       } else {
-        setMoodColor("#60a5fa");
+        // Use type-specific default color if no emotion detected
+        setMoodColor(typeConfig.defaultMoodColor);
         setPersonaState("contemplative");
       }
-
-      // Update traits and radar data calculations remain in backend logic
-      // but we don't display them - they could be used for analytics
 
       // Track word frequency for memory bubbles
       const newFrequency = new Map(wordFrequency);
@@ -196,12 +198,29 @@ const IndexContent = () => {
       if (newText.length > 10) {
         analyzeMood(newText);
       }
+
+      // Generate micro-comments based on journal type
+      const typeConfig = getTypeConfig(journalType);
+      if (journalType === "themed" && typeConfig.guidingPrompts && completedWords.length > 5) {
+        const randomPrompt = typeConfig.guidingPrompts[
+          Math.floor(Math.random() * typeConfig.guidingPrompts.length)
+        ];
+        setMicroComments([randomPrompt]);
+      } else if (completedWords.length > 3) {
+        const lastWord = completedWords[completedWords.length - 1].toLowerCase();
+        if (lastWord === "feel" || lastWord === "feeling") {
+          setMicroComments(["How does that make you feel?"]);
+        } else if (lastWord === "want" || lastWord === "wish") {
+          setMicroComments(["What do you really want?"]);
+        }
+      }
     }
 
     // Set timeout to reset color after 3 seconds of inactivity
     if (newText.length > 0) {
+      const typeConfig = getTypeConfig(journalType);
       const timeout = setTimeout(() => {
-        setMoodColor("#fbbf24");
+        setMoodColor(typeConfig.defaultMoodColor);
         setPersonaState("neutral");
       }, 3000);
       setColorResetTimeout(timeout);
@@ -255,7 +274,8 @@ const IndexContent = () => {
       setRippleActive(true);
       setTimeout(() => setRippleActive(false), 2000);
 
-      setMoodColor("#fbbf24");
+      const typeConfig = getTypeConfig(journalType);
+      setMoodColor(typeConfig.defaultMoodColor);
       setPersonaState("neutral");
       setIsTyping(false);
       setCaretPosition(null);
@@ -363,6 +383,8 @@ const IndexContent = () => {
     return () => clearInterval(interval);
   }, [text]);
 
+  const typeConfig = getTypeConfig(journalType);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -371,7 +393,12 @@ const IndexContent = () => {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="min-h-screen flex w-full relative"
     >
-      <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
+      <LivingBackground
+        moodColor={hoveredMoodColor || moodColor}
+        isTyping={isTyping}
+        rippleActive={rippleActive}
+        intensityMultiplier={typeConfig.cometIntensity}
+      />
 
       <div className="flex-1 min-h-screen relative z-10">
         <PersonaWithThoughts
@@ -469,7 +496,13 @@ const IndexContent = () => {
 
                 {/* Live Input - blends into the same page */}
                 <div className="relative">
-                  <HeartbeatHighlights text={text} wordFrequency={wordFrequency} moodColor={moodColor} threshold={2} />
+                  <HeartbeatHighlights
+                    text={text}
+                    wordFrequency={wordFrequency}
+                    moodColor={moodColor}
+                    threshold={2}
+                    intensityMultiplier={typeConfig.wordPulsingIntensity}
+                  />
                   <textarea
                     ref={textareaRef}
                     value={text}
@@ -482,7 +515,12 @@ const IndexContent = () => {
                     rows={6}
                     style={{ lineHeight: "32px" }}
                   />
-                  <EmotionalInkTrails isTyping={isTyping} moodColor={moodColor} caretPosition={caretPosition} />
+                  <EmotionalInkTrails
+                    isTyping={isTyping}
+                    moodColor={moodColor}
+                    caretPosition={caretPosition}
+                    strengthMultiplier={typeConfig.inkTrailStrength}
+                  />
                   <MicroComments comments={microComments} isTyping={isTyping} />
                   <MemoryBubbles memory={memoryBubble} />
                 </div>
