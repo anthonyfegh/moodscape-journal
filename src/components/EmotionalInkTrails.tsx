@@ -33,8 +33,8 @@ export const EmotionalInkTrails = ({
         id: `particle-${particleIdRef.current++}`,
         x: caretPosition.x + (Math.random() - 0.5) * 6,
         y: caretPosition.y + (Math.random() - 0.5) * 6,
-        size: Math.random() * 3 + 2,
-        opacity: Math.random() * 0.08 + 0.02,
+        size: Math.random() * 4 + 4,
+        opacity: Math.random() * 0.15 + 0.08,
         rotation: Math.random() * 360,
       };
 
@@ -72,13 +72,14 @@ export const EmotionalInkTrails = ({
               duration: 2,
               ease: "easeOut",
             }}
-            className="absolute rounded-full blur-sm"
+            className="absolute rounded-full blur-[2px]"
             style={{
               width: particle.size,
               height: particle.size,
               backgroundColor: moodColor,
               transform: `rotate(${particle.rotation}deg)`,
-              boxShadow: `0 0 ${particle.size * 2}px ${moodColor}`,
+              boxShadow: `0 0 ${particle.size * 3}px ${moodColor}`,
+              filter: `blur(2px) opacity(${particle.opacity})`,
             }}
           />
         ))}
