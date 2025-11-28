@@ -99,7 +99,7 @@ const Landing = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="mt-20 text-center"
+            className="mt-13 text-center"
           >
             <p className="text-sm text-foreground/40 mb-4 tracking-wide uppercase">Built by</p>
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
