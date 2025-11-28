@@ -5,6 +5,7 @@ import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
 import { JournalSidebar } from "@/components/JournalSidebar";
 import { LivingBackground } from "@/components/LivingBackground";
 import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
+import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -381,6 +382,12 @@ const Index = () => {
 
                   {/* Live Input - blends into the same page */}
                   <div className="relative">
+                    <HeartbeatHighlights
+                      text={text}
+                      wordFrequency={wordFrequency}
+                      moodColor={moodColor}
+                      threshold={2}
+                    />
                     <textarea
                       ref={textareaRef}
                       value={text}
@@ -389,7 +396,7 @@ const Index = () => {
                       onSelect={updateCaretPosition}
                       onClick={updateCaretPosition}
                       placeholder="Continue writing..."
-                      className="w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40"
+                      className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
                       rows={6}
                       style={{ lineHeight: "32px" }}
                     />
