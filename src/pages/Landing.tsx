@@ -25,7 +25,7 @@ const Landing = () => {
           transition={{ duration: 0.6 }}
           className="max-w-4xl w-full backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-12 text-center"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground/90 mb-6">MoodScape</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground/90 mb-6">Telos</h1>
 
           <p className="text-xl md:text-2xl text-foreground/70 mb-4 leading-relaxed">
             A journal that doesn't just store your thoughts — it feels them with you.
@@ -76,7 +76,7 @@ const Landing = () => {
             >
               <h3 className="text-lg font-semibold text-foreground/90 mb-3">Emotionally aware, not judgmental</h3>
               <p className="text-foreground/60 text-sm leading-relaxed">
-                MoodScape notices patterns, repetition, and shifts in tone — and reflects them back without labels or
+                Telos notices patterns, repetition, and shifts in tone — and reflects them back without labels or
                 scores.
               </p>
             </motion.div>

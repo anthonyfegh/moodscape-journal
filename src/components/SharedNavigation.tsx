@@ -20,7 +20,7 @@ export const SharedNavigation = () => {
           to="/" 
           className="text-xl font-semibold text-foreground/90 hover:text-foreground transition-colors"
         >
-          MoodScape
+          Telos
         </Link>
         
         <div className="flex items-center gap-4">
