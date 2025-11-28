@@ -74,6 +74,8 @@ const IndexContent = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const replyInputRef = useRef<HTMLInputElement>(null);
+  const [guidance, setGuidance] = useState<string>("");
+  const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Load journal and create default sub-journal if needed
   useEffect(() => {
@@ -196,17 +198,46 @@ const IndexContent = () => {
     const newText = e.target.value;
     setText(newText);
 
-    // Set typing state
+    // Set typing state and clear guidance
     setIsTyping(true);
+    setGuidance("");
 
     // Clear existing typing timeout
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
 
+    // Clear any pending guidance call
+    if (guidanceTimeoutRef.current) {
+      clearTimeout(guidanceTimeoutRef.current);
+    }
+
     // Set new typing timeout (2.5 seconds of inactivity)
     const newTypingTimeout = setTimeout(() => {
       setIsTyping(false);
+      
+      // Call AI for guidance after 2 seconds of stopping
+      guidanceTimeoutRef.current = setTimeout(async () => {
+        if (newText.trim().length > 20 && journalId) {
+          try {
+            const subJournals = await journalStorage.getSubJournals(journalId);
+            if (subJournals.length === 0) return;
+            
+            const { data, error } = await supabase.functions.invoke('generate-guidance', {
+              body: { 
+                journalText: newText,
+                journalType: journalType
+              }
+            });
+            
+            if (!error && data?.guidance) {
+              setGuidance(data.guidance);
+            }
+          } catch (err) {
+            console.error('Error getting guidance:', err);
+          }
+        }
+      }, 2000);
     }, 2500);
     setTypingTimeout(newTypingTimeout);
 
@@ -631,6 +662,7 @@ const IndexContent = () => {
           logEntries={logEntries}
           isTyping={isTyping}
           onClick={handleAvatarClick}
+          guidance={guidance}
         />
 
         {/* Header with back button and sidebar toggle */}
