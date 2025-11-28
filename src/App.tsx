@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Journals from "./pages/Journals";
 import Landing from "./pages/Landing";
@@ -24,9 +26,9 @@ const AnimatedRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/demo" element={<Demo />} />
-        <Route path="/journals" element={<Journals />} />
-        <Route path="/journal/:journalId" element={<Index />} />
-        <Route path="/journal" element={<Journals />} />
+        <Route path="/journals" element={<ProtectedRoute><Journals /></ProtectedRoute>} />
+        <Route path="/journal/:journalId" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+        <Route path="/journal" element={<ProtectedRoute><Journals /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -40,7 +42,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AnimatedRoutes />
+        <AuthProvider>
+          <AnimatedRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
