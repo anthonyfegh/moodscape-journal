@@ -515,9 +515,9 @@ const IndexContent = () => {
                     onSelect={updateCaretPosition}
                     onClick={updateCaretPosition}
                     placeholder=""
-                    className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
+                    className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-base leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
                     rows={6}
-                    style={{ lineHeight: "32px" }}
+                    style={{ lineHeight: "28px" }}
                   />
                   <EmotionalInkTrails
                     isTyping={isTyping}
