@@ -11,12 +11,7 @@ import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
 
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Menu, ArrowLeft, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { journalStorage } from "@/lib/journalStorage";
@@ -219,26 +214,26 @@ const IndexContent = () => {
     // Set new typing timeout (2.5 seconds of inactivity)
     const newTypingTimeout = setTimeout(() => {
       setIsTyping(false);
-      
+
       // Call AI for guidance after 2 seconds of stopping
       guidanceTimeoutRef.current = setTimeout(async () => {
         if (newText.trim().length > 20 && journalId) {
           try {
             const subJournals = await journalStorage.getSubJournals(journalId);
             if (subJournals.length === 0) return;
-            
-            const { data, error } = await supabase.functions.invoke('generate-guidance', {
-              body: { 
+
+            const { data, error } = await supabase.functions.invoke("generate-guidance", {
+              body: {
                 journalText: newText,
-                journalType: journalType
-              }
+                journalType: journalType,
+              },
             });
-            
+
             if (!error && data?.guidance) {
               setGuidance(data.guidance);
             }
           } catch (err) {
-            console.error('Error getting guidance:', err);
+            console.error("Error getting guidance:", err);
           }
         }
       }, 2000);
@@ -310,34 +305,29 @@ const IndexContent = () => {
         const defaultSubJournal = subJournals[0];
 
         // Call AI to analyze mood and get appropriate color
-        toast.loading("Analyzing your moment...", { id: 'analyzing' });
-        const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-moment', {
+        toast.loading("Analyzing your moment...", { id: "analyzing" });
+        const { data: analysisData, error: analysisError } = await supabase.functions.invoke("analyze-moment", {
           body: {
             momentText: contentToSave,
-            journalType: journalType
-          }
+            journalType: journalType,
+          },
         });
 
         let aiEmotion = personaState;
         let aiColor = moodColor;
 
         if (analysisError) {
-          console.error('Error analyzing moment:', analysisError);
-          toast.dismiss('analyzing');
+          console.error("Error analyzing moment:", analysisError);
+          toast.dismiss("analyzing");
           toast.error("Could not analyze mood, using current colors");
         } else {
           aiEmotion = analysisData.emotion || personaState;
           aiColor = analysisData.color || moodColor;
-          toast.dismiss('analyzing');
+          toast.dismiss("analyzing");
         }
 
         // Save to database with AI-generated emotion and color
-        const savedMoment = await journalStorage.createMoment(
-          defaultSubJournal.id,
-          contentToSave,
-          aiEmotion,
-          aiColor,
-        );
+        const savedMoment = await journalStorage.createMoment(defaultSubJournal.id, contentToSave, aiEmotion, aiColor);
 
         // Update journal's last mood color
         await journalStorage.updateJournal(journalId, { lastMoodColor: aiColor });
@@ -375,7 +365,7 @@ const IndexContent = () => {
           setTypingTimeout(null);
         }
       } catch (error) {
-        console.error('Error saving moment:', error);
+        console.error("Error saving moment:", error);
         toast.error("Failed to save moment. Please try again.");
       }
     }
@@ -462,13 +452,13 @@ const IndexContent = () => {
   // Handle Escape key to cancel selection mode
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSelectingMoment) {
+      if (e.key === "Escape" && isSelectingMoment) {
         setIsSelectingMoment(false);
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [isSelectingMoment]);
 
   // Handle click outside to unpin reply input
@@ -480,8 +470,8 @@ const IndexContent = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [pinnedReflection]);
 
   const handleMomentSelect = async (moment: LogEntry) => {
@@ -493,7 +483,7 @@ const IndexContent = () => {
     setTimeout(() => {
       const momentElement = momentRefs.current.get(moment.id);
       if (momentElement) {
-        momentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        momentElement.scrollIntoView({ behavior: "smooth", block: "center" });
         setHighlightedMomentId(moment.id);
         setTimeout(() => setHighlightedMomentId(null), 2000);
       }
@@ -502,31 +492,31 @@ const IndexContent = () => {
     try {
       // Prepare journal context - all previous moments except the current one
       const journalContext = logEntries
-        .filter(e => e.id !== moment.id)
-        .map(e => ({
+        .filter((e) => e.id !== moment.id)
+        .map((e) => ({
           text: e.text,
           emotion: e.emotion,
-          timestamp: e.timestamp
+          timestamp: e.timestamp,
         }));
 
-      const { data, error } = await supabase.functions.invoke('generate-reflection', {
+      const { data, error } = await supabase.functions.invoke("generate-reflection", {
         body: {
           momentText: moment.text,
           journalType: journalType,
           journalContext: journalContext,
           conversationHistory: (moment.ai_reflections || []).flatMap((r) => [
-            { role: 'user', content: moment.text },
-            { role: 'assistant', content: r.ai_text },
-            ...(r.user_reply ? [{ role: 'user', content: r.user_reply }] : [])
-          ])
-        }
+            { role: "user", content: moment.text },
+            { role: "assistant", content: r.ai_text },
+            ...(r.user_reply ? [{ role: "user", content: r.user_reply }] : []),
+          ]),
+        },
       });
 
       if (error) {
-        console.error('Error generating reflection:', error);
-        if (error.message?.includes('429')) {
+        console.error("Error generating reflection:", error);
+        if (error.message?.includes("429")) {
           toast.error("Too many requests. Please try again in a moment.");
-        } else if (error.message?.includes('402')) {
+        } else if (error.message?.includes("402")) {
           toast.error("AI credits exhausted. Please add credits to continue.");
         } else {
           toast.error("Failed to generate reflection. Please try again.");
@@ -535,33 +525,35 @@ const IndexContent = () => {
       }
 
       const reflection = data.reflection;
-      const summary = data.summary || 'Reflection';
-      
+      const summary = data.summary || "Reflection";
+
       // Save AI reflection to database
       await journalStorage.addAIReflection(moment.id, reflection, summary);
 
       // Update local state
-      setLogEntries((prev) => prev.map((entry) => {
-        if (entry.id === moment.id) {
-          return {
-            ...entry,
-            ai_reflections: [
-              ...(entry.ai_reflections || []),
-              {
-                id: crypto.randomUUID(),
-                ai_text: reflection,
-                summary: summary,
-                timestamp: new Date().toISOString(),
-              }
-            ]
-          };
-        }
-        return entry;
-      }));
+      setLogEntries((prev) =>
+        prev.map((entry) => {
+          if (entry.id === moment.id) {
+            return {
+              ...entry,
+              ai_reflections: [
+                ...(entry.ai_reflections || []),
+                {
+                  id: crypto.randomUUID(),
+                  ai_text: reflection,
+                  summary: summary,
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            };
+          }
+          return entry;
+        }),
+      );
 
       toast.success("AI reflection added to your moment");
     } catch (error) {
-      console.error('Error in reflection generation:', error);
+      console.error("Error in reflection generation:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsGeneratingReflection(false);
@@ -575,7 +567,7 @@ const IndexContent = () => {
   const handleReplySubmit = async (momentId: string, reflectionId: string) => {
     if (!replyText.trim()) return;
 
-    const moment = logEntries.find(e => e.id === momentId);
+    const moment = logEntries.find((e) => e.id === momentId);
     if (!moment) return;
 
     try {
@@ -583,80 +575,81 @@ const IndexContent = () => {
       await journalStorage.updateAIReflectionReply(momentId, reflectionId, replyText);
 
       // Update local state with user reply
-      setLogEntries((prev) => prev.map((entry) => {
-        if (entry.id === momentId) {
-          return {
-            ...entry,
-            ai_reflections: entry.ai_reflections?.map((r) =>
-              r.id === reflectionId ? { ...r, user_reply: replyText } : r
-            )
-          };
-        }
-        return entry;
-      }));
+      setLogEntries((prev) =>
+        prev.map((entry) => {
+          if (entry.id === momentId) {
+            return {
+              ...entry,
+              ai_reflections: entry.ai_reflections?.map((r) =>
+                r.id === reflectionId ? { ...r, user_reply: replyText } : r,
+              ),
+            };
+          }
+          return entry;
+        }),
+      );
 
       // Build conversation history including the new reply
       const conversationHistory = (moment.ai_reflections || []).flatMap((r) => {
-        const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
-          { role: 'assistant', content: r.ai_text }
+        const messages: Array<{ role: "assistant" | "user"; content: string }> = [
+          { role: "assistant", content: r.ai_text },
         ];
         if (r.id === reflectionId) {
-          messages.push({ role: 'user', content: replyText });
+          messages.push({ role: "user", content: replyText });
         } else if (r.user_reply) {
-          messages.push({ role: 'user', content: r.user_reply });
+          messages.push({ role: "user", content: r.user_reply });
         }
         return messages;
       });
 
       // Generate follow-up AI response
       setIsGeneratingReflection(true);
-      const { data, error } = await supabase.functions.invoke('generate-reflection', {
+      const { data, error } = await supabase.functions.invoke("generate-reflection", {
         body: {
           momentText: moment.text,
           journalType: journalType,
-          conversationHistory: [
-            { role: 'user', content: moment.text },
-            ...conversationHistory
-          ]
-        }
+          conversationHistory: [{ role: "user", content: moment.text }, ...conversationHistory],
+        },
       });
 
       if (error) {
-        console.error('Error generating follow-up:', error);
+        console.error("Error generating follow-up:", error);
         toast.error("Failed to generate follow-up. You can still continue manually.");
         return;
       }
 
       const followUp = data.reflection;
       const followUpSummary = data.summary;
-      
+
       // Save follow-up AI reflection
       await journalStorage.addAIReflection(momentId, followUp, followUpSummary);
 
       // Update local state with follow-up
-      setLogEntries((prev) => prev.map((entry) => {
-        if (entry.id === momentId) {
-          return {
-            ...entry,
-            ai_reflections: [
-              ...(entry.ai_reflections || []),
-              {
-                id: crypto.randomUUID(),
-                ai_text: followUp,
-                summary: followUpSummary,
-                timestamp: new Date().toISOString(),
-              }
-            ]
-          };
-        }
-        return entry;
-      }));
+      setLogEntries((prev) =>
+        prev.map((entry) => {
+          if (entry.id === momentId) {
+            return {
+              ...entry,
+              ai_reflections: [
+                ...(entry.ai_reflections || []),
+                {
+                  id: crypto.randomUUID(),
+                  ai_text: followUp,
+                  summary: followUpSummary,
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            };
+          }
+          return entry;
+        }),
+      );
 
       setHoveredReflection(null);
       setPinnedReflection(null);
       setReplyText("");
     } catch (error) {
-      console.error('Error submitting reply:', error);
+      console.error("Error submitting reply:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsGeneratingReflection(false);
@@ -718,7 +711,7 @@ const IndexContent = () => {
         {/* Header with back button and sidebar toggle */}
         <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/journal")}
             variant="ghost"
             size="sm"
             className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
@@ -739,7 +732,9 @@ const IndexContent = () => {
             {/* Centered layout with moments on the side */}
             <div className="flex gap-4 justify-center items-start relative">
               {/* Left column: Compact Moments */}
-              <div className={`space-y-3 w-64 flex-shrink-0 ${isSelectingMoment ? 'opacity-0 pointer-events-none' : ''}`}>
+              <div
+                className={`space-y-3 w-64 flex-shrink-0 ${isSelectingMoment ? "opacity-0 pointer-events-none" : ""}`}
+              >
                 <AnimatePresence>
                   {logEntries.map((entry, index) => (
                     <motion.div
@@ -753,7 +748,7 @@ const IndexContent = () => {
                       onClick={() => handleEditMoment(entry.id, true)}
                       className="cursor-pointer"
                     >
-                      <Card 
+                      <Card
                         className="relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2"
                         style={{ borderColor: entry.color }}
                       >
@@ -784,7 +779,7 @@ const IndexContent = () => {
 
               {/* Enlarged centered moments during selection */}
               {isSelectingMoment && (
-                <div 
+                <div
                   className="fixed inset-0 flex items-center justify-center z-50 pointer-events-auto"
                   onClick={(e) => {
                     if (e.target === e.currentTarget) {
@@ -799,47 +794,53 @@ const IndexContent = () => {
                           <motion.div
                             key={entry.id}
                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ 
-                              opacity: 1, 
-                              scale: 1, 
+                            animate={{
+                              opacity: 1,
+                              scale: 1,
                               y: [0, -8, 0],
                             }}
                             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-                            transition={{ 
+                            transition={{
                               opacity: { duration: 0.4, delay: index * 0.08 },
-                              scale: { duration: 0.4, delay: index * 0.08, type: "spring", stiffness: 200, damping: 20 },
-                              y: { 
-                                duration: 3, 
+                              scale: {
+                                duration: 0.4,
+                                delay: index * 0.08,
+                                type: "spring",
+                                stiffness: 200,
+                                damping: 20,
+                              },
+                              y: {
+                                duration: 3,
                                 delay: index * 0.08 + 0.5,
-                                repeat: Infinity, 
+                                repeat: Infinity,
                                 repeatType: "reverse",
-                                ease: "easeInOut"
-                              }
+                                ease: "easeInOut",
+                              },
                             }}
-                            whileHover={{ 
+                            whileHover={{
                               scale: 1.05,
-                              transition: { duration: 0.2 }
+                              transition: { duration: 0.2 },
                             }}
                             onClick={() => handleMomentSelect(entry)}
                             className="cursor-pointer group"
                           >
-                            <Card 
+                            <Card
                               className="relative p-6 bg-background/95 backdrop-blur-xl transition-all border-2 shadow-2xl ring-4 group-hover:ring-8 group-hover:shadow-[0_0_40px_rgba(0,0,0,0.3)]"
-                              style={{ 
+                              style={{
                                 borderColor: entry.color,
-                                boxShadow: `0 0 30px ${entry.color}40, 0 10px 40px rgba(0,0,0,0.3)`
+                                boxShadow: `0 0 30px ${entry.color}40, 0 10px 40px rgba(0,0,0,0.3)`,
                               }}
                             >
                               {/* Glow effect */}
-                              <div 
+                              <div
                                 className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
-                                style={{ 
+                                style={{
                                   backgroundColor: entry.color,
                                   opacity: 0.2,
-                                  filter: 'blur(20px)'
+                                  filter: "blur(20px)",
                                 }}
                               />
-                              
+
                               {/* Content */}
                               <div className="relative z-10">
                                 <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
@@ -872,9 +873,7 @@ const IndexContent = () => {
               <motion.div
                 className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative min-h-[600px] w-[700px] flex-shrink-0"
                 animate={
-                  isSelectingMoment 
-                    ? { filter: "blur(8px)", opacity: 0.5 }
-                    : { filter: "blur(0px)", opacity: 1 }
+                  isSelectingMoment ? { filter: "blur(8px)", opacity: 0.5 } : { filter: "blur(0px)", opacity: 1 }
                 }
                 transition={{ duration: 0.3 }}
                 style={{
@@ -893,12 +892,13 @@ const IndexContent = () => {
                           if (el) momentRefs.current.set(entry.id, el);
                         }}
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ 
-                          opacity: 1, 
+                        animate={{
+                          opacity: 1,
                           y: 0,
-                          boxShadow: highlightedMomentId === entry.id 
-                            ? `0 0 40px ${entry.color}80, 0 0 20px ${entry.color}60` 
-                            : 'none'
+                          boxShadow:
+                            highlightedMomentId === entry.id
+                              ? `0 0 40px ${entry.color}80, 0 0 20px ${entry.color}60`
+                              : "none",
                         }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
@@ -941,68 +941,85 @@ const IndexContent = () => {
 
                               {/* AI Reflections - soft, handwritten style */}
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
-                                    <Accordion type="single" collapsible className="pl-6 border-l-2 border-muted-foreground/10">
+                                <Accordion
+                                  type="single"
+                                  collapsible
+                                  className="pl-6 border-l-2 border-muted-foreground/10"
+                                >
                                   <AccordionItem value="reflections" className="border-none">
-                                    <AccordionTrigger 
+                                    <AccordionTrigger
                                       className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      {entry.ai_reflections[0]?.summary || 'AI Conversation'}
+                                      {entry.ai_reflections[0]?.summary || "AI Conversation"}
                                     </AccordionTrigger>
                                     <AccordionContent>
                                       <div className="space-y-3">
                                         {entry.ai_reflections.map((reflection, index) => (
-                                          <div 
+                                          <div
                                             key={reflection.id}
                                             className="space-y-2"
-                                            onMouseEnter={() => !reflection.user_reply && setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })}
+                                            onMouseEnter={() =>
+                                              !reflection.user_reply &&
+                                              setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })
+                                            }
                                             onMouseLeave={() => setHoveredReflection(null)}
                                           >
-                                            <p 
-                                              className="text-base italic text-muted-foreground/80 leading-relaxed hover:text-muted-foreground transition-colors" 
+                                            <p
+                                              className="text-base italic text-muted-foreground/80 leading-relaxed hover:text-muted-foreground transition-colors"
                                               style={{ lineHeight: "30px" }}
                                             >
                                               {reflection.ai_text}
                                             </p>
                                             {reflection.user_reply && (
-                                              <p className="text-base text-foreground/80 leading-relaxed pl-4" style={{ lineHeight: "30px" }}>
+                                              <p
+                                                className="text-base text-foreground/80 leading-relaxed pl-4"
+                                                style={{ lineHeight: "30px" }}
+                                              >
                                                 {reflection.user_reply}
                                               </p>
                                             )}
                                             {/* Reply input - appears on hover or when pinned */}
-                                            {((hoveredReflection?.momentId === entry.id && hoveredReflection?.reflectionId === reflection.id) ||
-                                              (pinnedReflection?.momentId === entry.id && pinnedReflection?.reflectionId === reflection.id)) && 
-                                             !reflection.user_reply && (
-                                               <div 
-                                                 ref={replyContainerRef}
-                                                 className="pl-4 animate-fade-in" 
-                                                 onClick={(e) => e.stopPropagation()}
-                                               >
-                                                 <input
-                                                   ref={replyInputRef}
-                                                   type="text"
-                                                   value={replyText}
-                                                   onChange={(e) => setReplyText(e.target.value)}
-                                                   onClick={(e) => {
-                                                     e.stopPropagation();
-                                                     setPinnedReflection({ momentId: entry.id, reflectionId: reflection.id });
-                                                   }}
-                                                   onKeyDown={(e) => {
-                                                     if (e.key === 'Enter') {
-                                                       e.preventDefault();
-                                                       handleReplySubmit(entry.id, reflection.id);
-                                                     } else if (e.key === 'Escape') {
-                                                       setPinnedReflection(null);
-                                                       setHoveredReflection(null);
-                                                       setReplyText("");
-                                                     }
-                                                   }}
-                                                   placeholder="Reply to continue the conversation..."
-                                                   className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
-                                                 />
-                                                 <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
-                                               </div>
-                                             )}
+                                            {((hoveredReflection?.momentId === entry.id &&
+                                              hoveredReflection?.reflectionId === reflection.id) ||
+                                              (pinnedReflection?.momentId === entry.id &&
+                                                pinnedReflection?.reflectionId === reflection.id)) &&
+                                              !reflection.user_reply && (
+                                                <div
+                                                  ref={replyContainerRef}
+                                                  className="pl-4 animate-fade-in"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  <input
+                                                    ref={replyInputRef}
+                                                    type="text"
+                                                    value={replyText}
+                                                    onChange={(e) => setReplyText(e.target.value)}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setPinnedReflection({
+                                                        momentId: entry.id,
+                                                        reflectionId: reflection.id,
+                                                      });
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                      if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleReplySubmit(entry.id, reflection.id);
+                                                      } else if (e.key === "Escape") {
+                                                        setPinnedReflection(null);
+                                                        setHoveredReflection(null);
+                                                        setReplyText("");
+                                                      }
+                                                    }}
+                                                    placeholder="Reply to continue the conversation..."
+                                                    className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
+                                                  />
+                                                  <p className="text-xs text-muted-foreground/50 mt-1">
+                                                    Press Enter to send, Esc to cancel
+                                                  </p>
+                                                </div>
+                                              )}
                                           </div>
                                         ))}
                                       </div>
