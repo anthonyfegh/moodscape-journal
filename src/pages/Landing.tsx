@@ -32,8 +32,8 @@ const Landing = () => {
           </p>
 
           <p className="text-base md:text-lg text-foreground/60 mb-12 max-w-2xl mx-auto">
-            As you write, Yuri / Riyu responds in real time — colors shift, the page breathes, and your emotional
-            patterns become visible. The more you log the more your AI gets personal.
+            As you write, Yuri responds in real time — colors shift, the page breathes, and your emotional patterns
+            become visible. The more you log the more your AI gets personal.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -103,23 +103,19 @@ const Landing = () => {
           >
             <p className="text-sm text-foreground/40 mb-4 tracking-wide uppercase">Built by</p>
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
-              {[
-                "Kristina Verbova",
-                "Anthony El Feghaly",
-                "Katherine Orefice",
-                "Rayan Yedaly",
-                "Kevin León"
-              ].map((name, index) => (
-                <motion.span
-                  key={name}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
-                  className="text-foreground/60 hover:text-foreground/90 transition-colors text-base font-light"
-                >
-                  {name}
-                </motion.span>
-              ))}
+              {["Kristina Verbova", "Anthony El Feghaly", "Katherine Orefice", "Rayan Yedaly", "Kevin León"].map(
+                (name, index) => (
+                  <motion.span
+                    key={name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
+                    className="text-foreground/60 hover:text-foreground/90 transition-colors text-base font-light"
+                  >
+                    {name}
+                  </motion.span>
+                ),
+              )}
             </div>
           </motion.div>
         </motion.div>
