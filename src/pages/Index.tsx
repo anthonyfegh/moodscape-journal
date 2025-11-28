@@ -365,7 +365,13 @@ const IndexContent = () => {
   }, [text]);
 
   return (
-    <div className="min-h-screen flex w-full relative">
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="min-h-screen flex w-full relative"
+    >
       <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
 
       <div className="flex-1 min-h-screen relative z-10">
@@ -489,7 +495,7 @@ const IndexContent = () => {
 
       <ManageJournalsSidebar />
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
-    </div>
+    </motion.div>
   );
 };
 

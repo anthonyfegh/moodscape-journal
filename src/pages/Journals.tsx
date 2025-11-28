@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Clock } from "lucide-react";
+import { Plus, BookOpen, Clock, Menu } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -8,7 +9,6 @@ import { journalStorage, Journal } from "@/lib/journalStorage";
 import { LivingBackground } from "@/components/LivingBackground";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ManageJournalsSidebar } from "@/components/ManageJournalsSidebar";
-import { Menu } from "lucide-react";
 
 const JournalsContent = () => {
   const navigate = useNavigate();
@@ -40,7 +40,13 @@ const JournalsContent = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full relative">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="min-h-screen flex w-full relative"
+    >
       <LivingBackground moodColor="#fbbf24" isTyping={false} rippleActive={false} />
 
       <div className="flex-1 min-h-screen relative z-10">
@@ -144,7 +150,7 @@ const JournalsContent = () => {
       </div>
 
       <ManageJournalsSidebar />
-    </div>
+    </motion.div>
   );
 };
 
