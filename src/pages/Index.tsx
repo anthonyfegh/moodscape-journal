@@ -62,7 +62,7 @@ const IndexContent = () => {
   const [momentModalOpen, setMomentModalOpen] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
-  const [replyingToReflection, setReplyingToReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
+  const [hoveredReflection, setHoveredReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
   const [replyText, setReplyText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -453,9 +453,7 @@ const IndexContent = () => {
   };
 
   const handleReflectionClick = (momentId: string, reflectionId: string) => {
-    setReplyingToReflection({ momentId, reflectionId });
-    setReplyText("");
-    setTimeout(() => replyInputRef.current?.focus(), 0);
+    // Removed - now using hover instead
   };
 
   const handleReplySubmit = async (momentId: string, reflectionId: string) => {
@@ -536,7 +534,7 @@ const IndexContent = () => {
         return entry;
       }));
 
-      setReplyingToReflection(null);
+      setHoveredReflection(null);
       setReplyText("");
     } catch (error) {
       console.error('Error submitting reply:', error);
@@ -725,10 +723,14 @@ const IndexContent = () => {
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
                                 <div className="pl-6 border-l-2 border-muted-foreground/10 space-y-3">
                                   {entry.ai_reflections.map((reflection, index) => (
-                                    <div key={reflection.id} className="space-y-2">
+                                    <div 
+                                      key={reflection.id} 
+                                      className="space-y-2"
+                                      onMouseEnter={() => !reflection.user_reply && setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })}
+                                      onMouseLeave={() => setHoveredReflection(null)}
+                                    >
                                       <p 
-                                        onClick={() => handleReflectionClick(entry.id, reflection.id)}
-                                        className="text-base italic text-muted-foreground/80 leading-relaxed cursor-pointer hover:text-muted-foreground transition-colors" 
+                                        className="text-base italic text-muted-foreground/80 leading-relaxed hover:text-muted-foreground transition-colors" 
                                         style={{ lineHeight: "30px" }}
                                       >
                                         {reflection.ai_text}
@@ -738,11 +740,11 @@ const IndexContent = () => {
                                           {reflection.user_reply}
                                         </p>
                                       )}
-                                       {/* Reply input */}
-                                       {replyingToReflection?.momentId === entry.id && 
-                                        replyingToReflection?.reflectionId === reflection.id && 
-                                        !reflection.user_reply && (
-                                         <div className="pl-4" onClick={(e) => e.stopPropagation()}>
+                                      {/* Reply input - appears on hover */}
+                                      {hoveredReflection?.momentId === entry.id && 
+                                       hoveredReflection?.reflectionId === reflection.id && 
+                                       !reflection.user_reply && (
+                                         <div className="pl-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
                                            <input
                                              ref={replyInputRef}
                                              type="text"
@@ -754,13 +756,8 @@ const IndexContent = () => {
                                                  e.preventDefault();
                                                  handleReplySubmit(entry.id, reflection.id);
                                                } else if (e.key === 'Escape') {
-                                                 setReplyingToReflection(null);
+                                                 setHoveredReflection(null);
                                                  setReplyText("");
-                                               }
-                                             }}
-                                             onBlur={() => {
-                                               if (!replyText.trim()) {
-                                                 setReplyingToReflection(null);
                                                }
                                              }}
                                              placeholder="Reply to continue the conversation..."
