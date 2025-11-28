@@ -134,7 +134,7 @@ export const LivingBackground = ({
           scale: isTyping ? [1, 1.04, 1] : 1,
           rotate: [0, 10, 0],
           opacity: isTyping ? [0.4, 0.7, 0.4] : 0.4,
-          background: `radial-gradient(ellipse 50% 60% at 50% 50%, ${cometColors.middle} 0%, ${cometColors.outer} 55%, transparent 100%)`,
+          background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? tertiaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
@@ -156,7 +156,7 @@ export const LivingBackground = ({
           scale: isTyping ? [1, 1.03, 1] : 1,
           rotate: [10, -5, 10],
           opacity: isTyping ? [0.3, 0.6, 0.3] : 0.3,
-          background: `radial-gradient(ellipse 60% 70% at 50% 50%, ${cometColors.middle} 0%, ${cometColors.outer} 65%, transparent 100%)`,
+          background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? quaternaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
