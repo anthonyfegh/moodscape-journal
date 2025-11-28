@@ -7,7 +7,7 @@ import { LivingBackground } from "@/components/LivingBackground";
 import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,7 +19,8 @@ interface LogEntry {
   timestamp: Date;
 }
 
-const Index = () => {
+const IndexContent = () => {
+  const { setOpen } = useSidebar();
   const [text, setText] = useState("");
   const [moodColor, setMoodColor] = useState("#fbbf24");
   const [microComments, setMicroComments] = useState<string[]>([]);
@@ -37,6 +38,7 @@ const Index = () => {
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -245,11 +247,24 @@ const Index = () => {
   }, []);
 
   // Handle editing a moment
-  const handleEditMoment = (momentId: string) => {
+  const handleEditMoment = (momentId: string, fromSidebar: boolean = false) => {
     const moment = logEntries.find((e) => e.id === momentId);
     if (moment) {
       setEditingMomentId(momentId);
       setEditingText(moment.text);
+      
+      // If clicked from sidebar, close sidebar and focus at end of text
+      if (fromSidebar) {
+        setOpen(false);
+        // Wait for next tick to ensure textarea is rendered
+        setTimeout(() => {
+          if (editTextareaRef.current) {
+            editTextareaRef.current.focus();
+            const length = moment.text.length;
+            editTextareaRef.current.setSelectionRange(length, length);
+          }
+        }, 0);
+      }
     }
   };
 
@@ -284,7 +299,6 @@ const Index = () => {
   }, [text]);
 
   return (
-    <SidebarProvider>
       <div className="min-h-screen flex w-full relative">
         <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} />
 
@@ -342,6 +356,7 @@ const Index = () => {
                         >
                           {editingMomentId === entry.id ? (
                             <textarea
+                              ref={editTextareaRef}
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
                               onBlur={() => handleSaveEdit(entry.id)}
@@ -401,8 +416,15 @@ const Index = () => {
           </div>
         </div>
 
-        <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id)} />
+        <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
       </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <SidebarProvider>
+      <IndexContent />
     </SidebarProvider>
   );
 };
