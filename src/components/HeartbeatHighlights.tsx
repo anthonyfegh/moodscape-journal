@@ -44,16 +44,17 @@ export const HeartbeatHighlights = ({ text, wordFrequency, moodColor, threshold 
               key={`word-${currentIndex}`}
               animate={{
                 textShadow: [
-                  `0 0 0px ${highlightColor}`,
-                  `0 0 8px ${highlightColor}, 0 0 12px ${highlightColor}`,
-                  `0 0 0px ${highlightColor}`,
+                  `0 0 2px ${highlightColor}`,
+                  `0 0 6px ${highlightColor}, 0 0 10px ${highlightColor}`,
+                  `0 0 2px ${highlightColor}`,
                 ],
-                opacity: [1, 1, 1],
+                opacity: [0.85, 1, 0.85],
               }}
               transition={{
-                duration: 2,
+                duration: 3,
                 repeat: Infinity,
                 ease: "easeInOut",
+                times: [0, 0.5, 1],
               }}
               style={{
                 color: "inherit",
