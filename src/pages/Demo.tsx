@@ -44,7 +44,7 @@ const Demo = () => {
               
               <div className="backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-foreground/90 mb-4">
-                  What MoodScape does
+                  What Telos does
                 </h2>
                 <ul className="space-y-3 text-foreground/70 text-sm">
                   <li className="flex items-start gap-3">

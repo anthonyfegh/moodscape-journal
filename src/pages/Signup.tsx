@@ -47,7 +47,7 @@ const Signup = () => {
           className="max-w-md w-full backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-8"
         >
           <h1 className="text-3xl font-bold text-foreground/90 mb-2 text-center">
-            Create your MoodScape account
+            Create your Telos account
           </h1>
           <p className="text-foreground/60 mb-8 text-center">
             Begin your journey of emotional discovery
