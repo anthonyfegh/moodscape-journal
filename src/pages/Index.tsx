@@ -926,8 +926,7 @@ const IndexContent = () => {
                                   handleSaveEdit(entry.id);
                                 }
                               }}
-                              className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
-                              rows={4}
+                              className="w-full bg-transparent border-none outline-none resize-none text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg p-0 m-0 focus:ring-0"
                               autoFocus
                               style={{ lineHeight: "32px" }}
                             />
