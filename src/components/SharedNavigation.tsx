@@ -18,7 +18,7 @@ export const SharedNavigation = () => {
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         <Link
           to="/"
-          className="text-xl font-semibold text-foreground/90 hover:text-foreground transition-colors font-cormorand"
+          className="text-xl font-semibold text-foreground/90 hover:text-foreground transition-colors font-cormorant"
         >
           Telos
         </Link>
