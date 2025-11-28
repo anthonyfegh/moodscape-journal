@@ -390,11 +390,13 @@ const IndexContent = () => {
   const handleMomentSelect = async (moment: LogEntry) => {
     setSelectedMoment(moment);
     setIsGeneratingReflection(true);
+    setMomentModalOpen(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-reflection', {
         body: {
           momentText: moment.text,
+          journalType: journalType,
           conversationHistory: (moment.ai_reflections || []).flatMap((r) => [
             { role: 'user', content: moment.text },
             { role: 'assistant', content: r.ai_text },
