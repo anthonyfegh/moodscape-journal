@@ -76,10 +76,33 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
     const data = await response.json();
     const content = data.choices[0].message.content;
     
-    // Parse the JSON response
+    // Parse the JSON response, being tolerant of markdown code fences and extra text
     let analysis;
     try {
-      analysis = JSON.parse(content);
+      let raw = typeof content === 'string' ? content.trim() : '';
+
+      // Strip markdown-style code fences like ```json ... ```
+      if (raw.startsWith('```')) {
+        const firstNewline = raw.indexOf('\n');
+        if (firstNewline !== -1) {
+          raw = raw.slice(firstNewline + 1);
+        }
+        if (raw.endsWith('```')) {
+          raw = raw.slice(0, -3);
+        }
+      }
+
+      raw = raw.trim();
+
+      // As a fallback, try to extract the first JSON object from the string
+      if (!raw.startsWith('{')) {
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          raw = match[0];
+        }
+      }
+
+      analysis = JSON.parse(raw);
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
       // Fallback to default values
