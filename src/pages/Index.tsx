@@ -742,24 +742,49 @@ const IndexContent = () => {
                           <motion.div
                             key={entry.id}
                             initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            animate={{ 
+                              opacity: 1, 
+                              scale: 1, 
+                              y: [0, -8, 0],
+                            }}
                             exit={{ opacity: 0, scale: 0.8, y: 20 }}
                             transition={{ 
-                              duration: 0.4, 
-                              delay: index * 0.08,
-                              type: "spring",
-                              stiffness: 200,
-                              damping: 20
+                              opacity: { duration: 0.4, delay: index * 0.08 },
+                              scale: { duration: 0.4, delay: index * 0.08, type: "spring", stiffness: 200, damping: 20 },
+                              y: { 
+                                duration: 3, 
+                                delay: index * 0.08 + 0.5,
+                                repeat: Infinity, 
+                                repeatType: "reverse",
+                                ease: "easeInOut"
+                              }
+                            }}
+                            whileHover={{ 
+                              scale: 1.05,
+                              transition: { duration: 0.2 }
                             }}
                             onClick={() => handleMomentSelect(entry)}
-                            className="cursor-pointer"
+                            className="cursor-pointer group"
                           >
                             <Card 
-                              className="relative p-6 bg-background/95 backdrop-blur-xl hover:bg-background transition-all border-2 shadow-2xl ring-4 ring-primary/20"
-                              style={{ borderColor: entry.color }}
+                              className="relative p-6 bg-background/95 backdrop-blur-xl transition-all border-2 shadow-2xl ring-4 group-hover:ring-8 group-hover:shadow-[0_0_40px_rgba(0,0,0,0.3)]"
+                              style={{ 
+                                borderColor: entry.color,
+                                boxShadow: `0 0 30px ${entry.color}40, 0 10px 40px rgba(0,0,0,0.3)`
+                              }}
                             >
+                              {/* Glow effect */}
+                              <div 
+                                className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
+                                style={{ 
+                                  backgroundColor: entry.color,
+                                  opacity: 0.2,
+                                  filter: 'blur(20px)'
+                                }}
+                              />
+                              
                               {/* Content */}
-                              <div>
+                              <div className="relative z-10">
                                 <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
                                   <span className="capitalize font-medium">{entry.emotion}</span>
                                   <span>•</span>
