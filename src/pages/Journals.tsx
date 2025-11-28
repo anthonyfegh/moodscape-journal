@@ -17,6 +17,14 @@ const journalTypeIcons = {
   creative: Sparkles,
 };
 
+const journalTypeLabels: Record<JournalType, string> = {
+  daily: "Daily Logs",
+  themed: "Themed Journals",
+  people: "People Journals",
+  event: "Event Journals",
+  creative: "Creative Journals",
+};
+
 const Journals = () => {
   const navigate = useNavigate();
   const [journals, setJournals] = useState<Journal[]>([]);
@@ -27,6 +35,15 @@ const Journals = () => {
   useEffect(() => {
     setJournals(journalStorage.getJournals());
   }, []);
+
+  // Group journals by type
+  const journalsByType = journals.reduce((acc, journal) => {
+    if (!acc[journal.type]) {
+      acc[journal.type] = [];
+    }
+    acc[journal.type].push(journal);
+    return acc;
+  }, {} as Record<JournalType, Journal[]>);
 
   const handleCreateJournal = () => {
     if (newJournalName.trim()) {
@@ -120,35 +137,53 @@ const Journals = () => {
               )}
             </div>
 
-            <div className="grid gap-4">
-              {journals.map((journal) => {
-                const TypeIcon = journalTypeIcons[journal.type] || BookOpen;
+            <div className="space-y-8">
+              {(["daily", "themed", "people", "event", "creative"] as JournalType[]).map((type) => {
+                const typeJournals = journalsByType[type] || [];
+                if (typeJournals.length === 0) return null;
+
+                const TypeIcon = journalTypeIcons[type];
                 
                 return (
-                  <Card
-                    key={journal.id}
-                    className="p-6 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
-                    onClick={() => navigate(`/journal/${journal.id}`)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-4 h-4 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: journal.lastMoodColor }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <TypeIcon className="h-4 w-4 text-muted-foreground" />
-                          <h3 className="text-lg font-semibold truncate text-foreground">
-                            {journal.name}
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>Updated {formatDate(journal.updatedAt)}</span>
-                        </div>
+                  <div key={type} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                        <TypeIcon className="h-5 w-5" />
+                        <h2>{journalTypeLabels[type]}</h2>
                       </div>
+                      <div className="flex-1 h-px bg-border/30"></div>
                     </div>
-                  </Card>
+                    
+                    <div className="grid gap-3">
+                      {typeJournals.map((journal) => {
+                        const JournalTypeIcon = journalTypeIcons[journal.type] || BookOpen;
+                        
+                        return (
+                          <Card
+                            key={journal.id}
+                            className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
+                            onClick={() => navigate(`/journal/${journal.id}`)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: journal.lastMoodColor }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-semibold truncate text-foreground mb-1">
+                                  {journal.name}
+                                </h3>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  <span>Updated {formatDate(journal.updatedAt)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
 
