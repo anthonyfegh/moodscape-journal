@@ -76,86 +76,86 @@ export const LivingBackground = ({ moodColor, isTyping, rippleActive = false, in
         style={{ backgroundColor: "hsl(var(--background))" }}
       />
 
-      {/* Comet 1 — main bright comet */}
+      {/* Comet 1 — Top-left corner */}
       <motion.div
         className="absolute"
         style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
-          x: ["-15vw", "40vw", "105vw"],
-          y: ["-10vh", "50vh", "90vh"],
+          x: isTyping ? ["5vw", "45vw", "5vw"] : "5vw",
+          y: isTyping ? ["5vh", "45vh", "5vh"] : "5vh",
           scale: isTyping ? [1, 1.08, 1] : 1,
           rotate: [25, 35, 25],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
-          x: { duration: mainCometDuration, repeat: Infinity, ease: "easeInOut" },
-          y: { duration: mainCometDuration, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: isTyping ? mainCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          y: { duration: isTyping ? mainCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           scale: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           rotate: { duration: mainCometDuration, repeat: Infinity, ease: "easeInOut" },
           background: { duration: 1.5, ease: "easeInOut" },
         }}
       />
 
-      {/* Comet 2 — secondary depth comet */}
+      {/* Comet 2 — Top-right corner */}
       <motion.div
         className="absolute"
         style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
         initial={false}
         animate={{
-          x: ["105vw", "45vw", "-15vw"],
-          y: ["90vh", "40vh", "80vh"],
+          x: isTyping ? ["75vw", "45vw", "75vw"] : "75vw",
+          y: isTyping ? ["5vh", "45vh", "5vh"] : "5vh",
           scale: isTyping ? [1, 1.06, 1] : 1,
           rotate: [-20, -30, -20],
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
-          x: { duration: secondaryCometDuration, repeat: Infinity, ease: "easeInOut" },
-          y: { duration: secondaryCometDuration, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: isTyping ? secondaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          y: { duration: isTyping ? secondaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           scale: { duration: 1.8, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           rotate: { duration: secondaryCometDuration, repeat: Infinity, ease: "easeInOut" },
           background: { duration: 1.5, ease: "easeInOut" },
         }}
       />
 
-      {/* Comet 3 — slow ambient vertical drift */}
+      {/* Comet 3 — Bottom-left corner */}
       <motion.div
         className="absolute"
         style={{ width: "450px", height: "260px", filter: "blur(55px)" }}
         initial={false}
         animate={{
-          x: ["20vw", "60vw", "10vw"],
-          y: ["-15vh", "80vh", "-10vh"],
+          x: isTyping ? ["5vw", "45vw", "5vw"] : "5vw",
+          y: isTyping ? ["75vh", "45vh", "75vh"] : "75vh",
           scale: isTyping ? [1, 1.04, 1] : 1,
           rotate: [0, 10, 0],
           opacity: isTyping ? [0.4, 0.7, 0.4] : 0.4,
           background: `radial-gradient(ellipse 50% 60% at 50% 50%, ${cometColors.middle} 0%, ${cometColors.outer} 55%, transparent 100%)`,
         }}
         transition={{
-          x: { duration: tertiaryCometDuration, repeat: Infinity, ease: "easeInOut" },
-          y: { duration: tertiaryCometDuration, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: isTyping ? tertiaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          y: { duration: isTyping ? tertiaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           opacity: { duration: 3, repeat: isTyping ? Infinity : 0 },
           rotate: { duration: tertiaryCometDuration, repeat: Infinity },
           scale: { duration: 2.2, repeat: isTyping ? Infinity : 0 },
         }}
       />
 
-      {/* Comet 4 — distant parallax drifting horizontally */}
+      {/* Comet 4 — Bottom-right corner */}
       <motion.div
         className="absolute"
         style={{ width: "380px", height: "200px", filter: "blur(60px)" }}
         initial={false}
         animate={{
-          x: ["-20vw", "110vw", "-20vw"],
-          y: ["70vh", "60vh", "75vh"],
+          x: isTyping ? ["75vw", "45vw", "75vw"] : "75vw",
+          y: isTyping ? ["75vh", "45vh", "75vh"] : "75vh",
           scale: isTyping ? [1, 1.03, 1] : 1,
           rotate: [10, -5, 10],
           opacity: isTyping ? [0.3, 0.6, 0.3] : 0.3,
           background: `radial-gradient(ellipse 60% 70% at 50% 50%, ${cometColors.middle} 0%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
-          x: { duration: quaternaryCometDuration, repeat: Infinity, ease: "easeInOut" },
-          y: { duration: quaternaryCometDuration, repeat: Infinity, ease: "easeInOut" },
+          x: { duration: isTyping ? quaternaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          y: { duration: isTyping ? quaternaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           opacity: { duration: 3.5, repeat: isTyping ? Infinity : 0 },
           rotate: { duration: quaternaryCometDuration, repeat: Infinity },
           scale: { duration: 2.5, repeat: isTyping ? Infinity : 0 },
