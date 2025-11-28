@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ChevronLeft } from "lucide-react";
+import {
+  getJournalById,
+  getSubJournalById,
+  getMoments,
+  saveMoment,
+  updateJournal,
+  updateSubJournal,
+} from "@/lib/localStorage";
 
 // Import all existing journal components
 import { LivingBackground } from "@/components/LivingBackground";
@@ -44,8 +51,6 @@ export default function Writing() {
   const [recentWords, setRecentWords] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showRipple, setShowRipple] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const [microComments] = useState<string[]>([
     "What a beautiful thought...",
@@ -55,51 +60,17 @@ export default function Writing() {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (!journalId || !subJournalId) return;
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-      return;
-    }
-    setUser(session.user);
-    fetchData();
-  };
+    const journalData = getJournalById(journalId);
+    setJournal(journalData);
 
-  const fetchData = async () => {
-    try {
-      // Fetch journal info
-      const { data: journalData } = await supabase
-        .from("journals")
-        .select("*")
-        .eq("id", journalId)
-        .single();
-      setJournal(journalData);
+    const subJournalData = getSubJournalById(subJournalId);
+    setSubJournal(subJournalData);
 
-      // Fetch sub-journal info
-      const { data: subJournalData } = await supabase
-        .from("sub_journals")
-        .select("*")
-        .eq("id", subJournalId)
-        .single();
-      setSubJournal(subJournalData);
-
-      // Fetch moments for this sub-journal
-      const { data: momentsData } = await supabase
-        .from("moments")
-        .select("*")
-        .eq("sub_journal_id", subJournalId)
-        .order("timestamp", { ascending: true });
-      
-      setMoments(momentsData || []);
-    } catch (error: any) {
-      toast.error("Failed to load journal data");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const momentsData = getMoments(subJournalId);
+    setMoments(momentsData);
+  }, [journalId, subJournalId]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -131,48 +102,29 @@ export default function Writing() {
     });
   };
 
-  const handleSaveMoment = async () => {
-    if (!currentText.trim()) return;
+  const handleSaveMoment = () => {
+    if (!currentText.trim() || !subJournalId || !journalId) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("moments")
-        .insert({
-          sub_journal_id: subJournalId,
-          user_id: user.id,
-          text: currentText,
-          emotion: currentEmotion,
-          color: currentColor,
-        })
-        .select()
-        .single();
+    const newMoment = saveMoment({
+      sub_journal_id: subJournalId,
+      text: currentText,
+      emotion: currentEmotion,
+      color: currentColor,
+    });
 
-      if (error) throw error;
+    setMoments([...moments, newMoment]);
+    setCurrentText("");
+    setShowRipple(true);
+    setTimeout(() => setShowRipple(false), 2000);
 
-      setMoments([...moments, data]);
-      setCurrentText("");
-      setShowRipple(true);
-      setTimeout(() => setShowRipple(false), 2000);
+    // Update timestamps
+    updateSubJournal(subJournalId, { updated_at: new Date().toISOString() });
+    updateJournal(journalId, {
+      updated_at: new Date().toISOString(),
+      last_mood_color: currentColor,
+    });
 
-      // Update sub-journal timestamp
-      await supabase
-        .from("sub_journals")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", subJournalId);
-
-      // Update journal timestamp and color
-      await supabase
-        .from("journals")
-        .update({
-          updated_at: new Date().toISOString(),
-          last_mood_color: currentColor,
-        })
-        .eq("id", journalId);
-
-      toast.success("Moment saved");
-    } catch (error: any) {
-      toast.error("Failed to save moment");
-    }
+    toast.success("Moment saved");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -190,14 +142,6 @@ export default function Writing() {
       setCurrentEmotion(moment.emotion);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#c0b6ac" }}>
-        <p className="text-foreground">Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">

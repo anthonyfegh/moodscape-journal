@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, ChevronLeft, Book } from "lucide-react";
 import { motion } from "framer-motion";
+import { getJournalById, getSubJournals, saveSubJournal } from "@/lib/localStorage";
 
 interface SubJournal {
   id: string;
@@ -26,82 +26,30 @@ export default function JournalDetail() {
   const [subJournals, setSubJournals] = useState<SubJournal[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newSubJournalName, setNewSubJournalName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (!journalId) return;
+    
+    const journalData = getJournalById(journalId);
+    setJournal(journalData);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-      return;
-    }
-    setUser(session.user);
-    fetchData();
+    const subJournalsData = getSubJournals(journalId);
+    setSubJournals(subJournalsData.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
+  }, [journalId]);
+
+  const createSubJournal = () => {
+    if (!newSubJournalName.trim() || !journalId) return;
+
+    const newSubJournal = saveSubJournal({
+      name: newSubJournalName,
+      journal_id: journalId,
+    });
+
+    setSubJournals([newSubJournal, ...subJournals]);
+    setNewSubJournalName("");
+    setIsCreating(false);
+    toast.success("Sub-journal created");
   };
-
-  const fetchData = async () => {
-    try {
-      // Fetch journal
-      const { data: journalData, error: journalError } = await supabase
-        .from("journals")
-        .select("*")
-        .eq("id", journalId)
-        .single();
-
-      if (journalError) throw journalError;
-      setJournal(journalData);
-
-      // Fetch sub-journals
-      const { data: subJournalsData, error: subJournalsError } = await supabase
-        .from("sub_journals")
-        .select("*")
-        .eq("journal_id", journalId)
-        .order("updated_at", { ascending: false });
-
-      if (subJournalsError) throw subJournalsError;
-      setSubJournals(subJournalsData || []);
-    } catch (error: any) {
-      toast.error("Failed to load journal");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createSubJournal = async () => {
-    if (!newSubJournalName.trim()) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("sub_journals")
-        .insert({
-          name: newSubJournalName,
-          journal_id: journalId,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setSubJournals([data, ...subJournals]);
-      setNewSubJournalName("");
-      setIsCreating(false);
-      toast.success("Sub-journal created");
-    } catch (error: any) {
-      toast.error("Failed to create sub-journal");
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#c0b6ac" }}>
-        <p className="text-foreground">Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen p-8" style={{ backgroundColor: "#c0b6ac" }}>

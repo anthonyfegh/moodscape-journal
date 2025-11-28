@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, BookOpen, LogOut } from "lucide-react";
+import { Plus, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
+import { getJournals, saveJournal } from "@/lib/localStorage";
 
 interface Journal {
   id: string;
@@ -20,81 +20,35 @@ export default function Journals() {
   const [journals, setJournals] = useState<Journal[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newJournalName, setNewJournalName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkAuth();
+    fetchJournals();
   }, []);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-      return;
-    }
-    setUser(session.user);
-    fetchJournals();
+  const fetchJournals = () => {
+    const data = getJournals();
+    setJournals(data.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
   };
 
-  const fetchJournals = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("journals")
-        .select("*")
-        .order("updated_at", { ascending: false });
-
-      if (error) throw error;
-      setJournals(data || []);
-    } catch (error: any) {
-      toast.error("Failed to load journals");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createJournal = async () => {
+  const createJournal = () => {
     if (!newJournalName.trim()) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("journals")
-        .insert({ name: newJournalName, user_id: user.id })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setJournals([data, ...journals]);
-      setNewJournalName("");
-      setIsCreating(false);
-      toast.success("Journal created");
-    } catch (error: any) {
-      toast.error("Failed to create journal");
-    }
+    const newJournal = saveJournal({
+      name: newJournalName,
+      last_mood_color: "#FCD34D",
+    });
+    
+    setJournals([newJournal, ...journals]);
+    setNewJournalName("");
+    setIsCreating(false);
+    toast.success("Journal created");
   };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#c0b6ac" }}>
-        <p className="text-foreground">Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen p-8" style={{ backgroundColor: "#c0b6ac" }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-serif text-foreground">My Journals</h1>
-          <Button variant="ghost" onClick={handleSignOut} className="gap-2">
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
         </div>
 
         {isCreating ? (
