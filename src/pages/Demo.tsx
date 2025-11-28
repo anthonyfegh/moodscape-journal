@@ -19,14 +19,15 @@ const Demo = () => {
             className="grid lg:grid-cols-2 gap-8 items-start"
           >
             {/* Left Column - Context */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-foreground/90 mb-4">
                   The problem
                 </h2>
-                <p className="text-foreground/70 leading-relaxed">
-                  Traditional journaling apps are static — they store your words but don't understand them. 
-                  They lack emotional awareness and fail to create a sense of presence or connection with your inner world.
+                <p className="text-foreground/70 leading-relaxed text-sm">
+                  Journaling today is often lonely, static, and abandoned. Most tools react only after you're done writing, 
+                  not while you're feeling. The moment you need support most — during emotional expression — is when 
+                  traditional journals are silent.
                 </p>
               </div>
               
@@ -34,33 +35,53 @@ const Demo = () => {
                 <h2 className="text-2xl font-bold text-foreground/90 mb-4">
                   Our insight
                 </h2>
-                <p className="text-foreground/70 leading-relaxed">
-                  Journaling becomes more meaningful when the interface itself responds to your emotional state. 
-                  By making the page "alive" and emotionally aware, we create a space that feels less like a tool 
-                  and more like a companion in your self-reflection journey.
+                <p className="text-foreground/70 leading-relaxed text-sm">
+                  The most meaningful moment for support is during emotional expression, not after. What if the "page" 
+                  itself felt present and alive? By making the interface respond in real time, we create a space that 
+                  feels less like a tool and more like a companion.
                 </p>
+              </div>
+              
+              <div className="backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-foreground/90 mb-4">
+                  What MoodScape does
+                </h2>
+                <ul className="space-y-3 text-foreground/70 text-sm">
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>The background and "sky" react to your mood in real time</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>The journal surface feels like a single living sheet of paper</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>An avatar listens, reacts, and guides you with gentle questions</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>AI reflections understand your emotional patterns across time</span>
+                  </li>
+                </ul>
               </div>
               
               <div className="backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-foreground/90 mb-4">
                   What you'll see in this demo
                 </h2>
-                <ul className="space-y-3 text-foreground/70">
-                  <li className="flex items-start gap-2">
-                    <span className="text-foreground/90 mt-1">•</span>
-                    <span>A living background that responds to your emotional state while you write</span>
+                <ul className="space-y-3 text-foreground/70 text-sm">
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>Colors and motion responding to your writing</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-foreground/90 mt-1">•</span>
-                    <span>AI-powered reflections that understand context and emotional patterns</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>Subtle micro-reactions as you type</span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-foreground/90 mt-1">•</span>
-                    <span>Subtle visual cues that make the interface feel emotionally present</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-foreground/90 mt-1">•</span>
-                    <span>A continuous writing surface that feels like natural paper, not separate cards</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-foreground/90 mt-0.5 text-base">•</span>
+                    <span>A journal that feels more like a presence than a tool</span>
                   </li>
                 </ul>
               </div>
@@ -75,24 +96,22 @@ const Demo = () => {
             >
               <div className="backdrop-blur-2xl bg-background/20 border border-border/10 rounded-3xl shadow-lg p-12 text-center">
                 <h2 className="text-3xl font-bold text-foreground/90 mb-4">
-                  Live journal demo
+                  Live journal experience
                 </h2>
-                <p className="text-foreground/60 mb-8 leading-relaxed">
-                  Experience the emotional, alive journaling interface in action. 
-                  Watch as the page responds to mood, provides gentle guidance, and creates 
-                  a space that feels truly connected to your inner world.
+                <p className="text-foreground/60 mb-6 leading-relaxed text-sm">
+                  Ready to feel how the page responds to you in real time?
                 </p>
                 
                 <Button
                   asChild
                   size="lg"
-                  className="bg-foreground/10 hover:bg-foreground/20 text-foreground border border-border/20 text-lg px-8 py-6"
+                  className="bg-primary/20 hover:bg-primary/30 text-foreground border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.15)] hover:shadow-[0_0_30px_rgba(var(--primary),0.25)] transition-all text-lg px-8 py-6 rounded-2xl mb-6"
                 >
-                  <Link to="/journal">Open journal experience</Link>
+                  <Link to="/journals">Open the live journal</Link>
                 </Button>
                 
-                <p className="text-sm text-foreground/50 mt-6">
-                  No login required for demo
+                <p className="text-xs text-foreground/50">
+                  Notice how the background shifts and the page reacts as you write.
                 </p>
               </div>
             </motion.div>
