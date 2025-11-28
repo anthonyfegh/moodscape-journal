@@ -29,6 +29,7 @@ import { toast } from "sonner";
 interface AIReflection {
   id: string;
   ai_text: string;
+  summary?: string;
   user_reply?: string;
   timestamp: string;
 }
@@ -454,9 +455,10 @@ const IndexContent = () => {
       }
 
       const reflection = data.reflection;
+      const summary = data.summary || 'Reflection';
       
       // Save AI reflection to database
-      await journalStorage.addAIReflection(moment.id, reflection);
+      await journalStorage.addAIReflection(moment.id, reflection, summary);
 
       // Update local state
       setLogEntries((prev) => prev.map((entry) => {
@@ -468,6 +470,7 @@ const IndexContent = () => {
               {
                 id: crypto.randomUUID(),
                 ai_text: reflection,
+                summary: summary,
                 timestamp: new Date().toISOString(),
               }
             ]
@@ -545,9 +548,10 @@ const IndexContent = () => {
       }
 
       const followUp = data.reflection;
+      const followUpSummary = data.summary;
       
       // Save follow-up AI reflection
-      await journalStorage.addAIReflection(momentId, followUp);
+      await journalStorage.addAIReflection(momentId, followUp, followUpSummary);
 
       // Update local state with follow-up
       setLogEntries((prev) => prev.map((entry) => {
@@ -559,6 +563,7 @@ const IndexContent = () => {
               {
                 id: crypto.randomUUID(),
                 ai_text: followUp,
+                summary: followUpSummary,
                 timestamp: new Date().toISOString(),
               }
             ]
@@ -754,13 +759,13 @@ const IndexContent = () => {
 
                               {/* AI Reflections - soft, handwritten style */}
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
-                                <Accordion type="single" collapsible defaultValue="reflections" className="pl-6 border-l-2 border-muted-foreground/10">
+                                    <Accordion type="single" collapsible defaultValue="reflections" className="pl-6 border-l-2 border-muted-foreground/10">
                                   <AccordionItem value="reflections" className="border-none">
                                     <AccordionTrigger 
                                       className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      AI Conversation
+                                      {entry.ai_reflections[0]?.summary || 'AI Conversation'}
                                     </AccordionTrigger>
                                     <AccordionContent>
                                       <div className="space-y-3">

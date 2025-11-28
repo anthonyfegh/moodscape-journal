@@ -32,6 +32,7 @@ export interface Moment {
 export interface AIReflection {
   id: string;
   ai_text: string;
+  summary?: string;
   user_reply?: string;
   timestamp: string;
 }
@@ -299,6 +300,7 @@ export const journalStorage = {
   async addAIReflection(
     momentId: string,
     aiText: string,
+    summary?: string,
     userReply?: string
   ): Promise<void> {
     const { data: moment, error: fetchError } = await supabase
@@ -316,6 +318,7 @@ export const journalStorage = {
     const newReflection = {
       id: crypto.randomUUID(),
       ai_text: aiText,
+      summary: summary,
       user_reply: userReply,
       timestamp: new Date().toISOString(),
     };
