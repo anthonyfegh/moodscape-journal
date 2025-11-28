@@ -39,18 +39,8 @@ const IndexContent = () => {
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const [rippleActive, setRippleActive] = useState(false);
-  const [momentSelectionMode, setMomentSelectionMode] = useState(false);
-  const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
-  const [avatarQuestioning, setAvatarQuestioning] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const questions = [
-    "What makes this moment stand out to you today?",
-    "Do you still feel the same as you did then?",
-    "Has anything changed since this happened?",
-  ];
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -263,61 +253,6 @@ const IndexContent = () => {
     document.body.removeChild(div);
   }, []);
 
-  // Handle entering selection mode
-  const handleEnterSelectionMode = () => {
-    setMomentSelectionMode(true);
-    setSelectedMoment(null);
-    setCurrentQuestionIndex(0);
-  };
-
-  // Handle moment selection during selection mode
-  const handleMomentSelect = (moment: LogEntry) => {
-    setMomentSelectionMode(false);
-    setSelectedMoment(moment);
-    setAvatarQuestioning(true);
-    
-    // Start inserting questions
-    insertQuestion(0);
-  };
-
-  // Insert questions one by one
-  const insertQuestion = (index: number) => {
-    if (index >= questions.length) {
-      setAvatarQuestioning(false);
-      return;
-    }
-
-    setTimeout(() => {
-      const question = questions[index];
-      setText((prev) => {
-        const newText = prev ? `${prev}\n\n${question} ` : `${question} `;
-        
-        // Focus textarea and move caret to end
-        setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-            const length = newText.length;
-            textareaRef.current.setSelectionRange(length, length);
-          }
-        }, 100);
-        
-        return newText;
-      });
-      
-      setCurrentQuestionIndex(index + 1);
-      
-      // Insert next question after delay
-      insertQuestion(index + 1);
-    }, index === 0 ? 500 : 2000); // First question after 0.5s, others after 2s
-  };
-
-  // Exit questioning mode
-  const handleExitQuestioning = () => {
-    setAvatarQuestioning(false);
-    setSelectedMoment(null);
-    setCurrentQuestionIndex(0);
-  };
-
   // Handle editing a moment
   const handleEditMoment = (momentId: string, fromSidebar: boolean = false) => {
     const moment = logEntries.find((e) => e.id === momentId);
@@ -382,8 +317,6 @@ const IndexContent = () => {
           personaState={personaState}
           logEntries={logEntries}
           isTyping={isTyping}
-          onEnterSelectionMode={handleEnterSelectionMode}
-          isQuestioning={avatarQuestioning}
         />
 
         {/* Toggle Sidebar Button */}
@@ -395,24 +328,8 @@ const IndexContent = () => {
 
         <div className="min-h-screen flex flex-col items-center p-8">
           <div className="max-w-3xl w-full">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">Your Journal</h1>
-                <p className="text-muted-foreground">
-                  {momentSelectionMode 
-                    ? "Select a moment to reflect on..." 
-                    : "Write freely, and watch your emotions come alive"}
-                </p>
-              </div>
-              {avatarQuestioning && (
-                <button
-                  onClick={handleExitQuestioning}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-md hover:bg-muted/50"
-                >
-                  Stop questions
-                </button>
-              )}
-            </div>
+            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">Your Journal</h1>
+            <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
 
             {/* Continuous Writing Surface - like a sheet of paper */}
             <div
@@ -436,10 +353,8 @@ const IndexContent = () => {
                     >
                       <MomentSpotlight
                         moodColor={entry.color}
-                        isSelectionMode={momentSelectionMode}
-                        onSelect={() => handleMomentSelect(entry)}
                         onMomentClick={() => {
-                          if (editingMomentId !== entry.id && !momentSelectionMode) {
+                          if (editingMomentId !== entry.id) {
                             handleEditMoment(entry.id);
                           }
                         }}

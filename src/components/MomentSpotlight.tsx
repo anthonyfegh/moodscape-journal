@@ -6,18 +6,9 @@ interface MomentSpotlightProps {
   children: React.ReactNode;
   onMomentClick: () => void;
   onHoverChange: (isHovering: boolean) => void;
-  isSelectionMode?: boolean;
-  onSelect?: () => void;
 }
 
-export const MomentSpotlight = ({ 
-  moodColor, 
-  children, 
-  onMomentClick, 
-  onHoverChange,
-  isSelectionMode = false,
-  onSelect,
-}: MomentSpotlightProps) => {
+export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverChange }: MomentSpotlightProps) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,14 +32,6 @@ export const MomentSpotlight = ({
     onHoverChange(false);
   };
 
-  const handleClick = () => {
-    if (isSelectionMode && onSelect) {
-      onSelect();
-    } else {
-      onMomentClick();
-    }
-  };
-
   return (
     <div
       ref={containerRef}
@@ -56,7 +39,7 @@ export const MomentSpotlight = ({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
+      onClick={onMomentClick}
     >
       {/* Spotlight orb that follows cursor */}
       <AnimatePresence>
