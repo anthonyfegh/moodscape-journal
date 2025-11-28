@@ -1,12 +1,39 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SharedNavigation } from "@/components/SharedNavigation";
 import { LivingBackground } from "@/components/LivingBackground";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 
 const Login = () => {
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/journals');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    const { error } = await signIn(email, password);
+    
+    setIsLoading(false);
+    
+    if (!error) {
+      navigate('/journals');
+    }
+  };
+
   return (
     <div className="min-h-screen w-full">
       <LivingBackground moodColor="#FFD966" isTyping={false} />
@@ -26,7 +53,7 @@ const Login = () => {
             Continue your emotional journey
           </p>
           
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground/80">
                 Email
@@ -36,6 +63,9 @@ const Login = () => {
                 type="email"
                 placeholder="your@email.com"
                 className="bg-background/50 border-border/20 text-foreground placeholder:text-foreground/40"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
             
@@ -48,14 +78,18 @@ const Login = () => {
                 type="password"
                 placeholder="••••••••"
                 className="bg-background/50 border-border/20 text-foreground placeholder:text-foreground/40"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
             
             <Button
               type="submit"
               className="w-full bg-foreground/10 hover:bg-foreground/20 text-foreground border border-border/20"
+              disabled={isLoading}
             >
-              Log in
+              {isLoading ? "Logging in..." : "Log in"}
             </Button>
           </form>
           

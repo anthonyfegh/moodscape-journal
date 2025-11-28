@@ -83,13 +83,19 @@ export const journalStorage = {
   },
 
   async createJournal(name: string, type: JournalType = "daily"): Promise<Journal> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("User must be authenticated to create a journal");
+    }
+
     const { data, error } = await supabase
       .from("journals")
       .insert({
         name,
         type,
         last_mood_color: "#fbbf24",
-        user_id: null,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -184,12 +190,18 @@ export const journalStorage = {
   },
 
   async createSubJournal(journalId: string, name: string): Promise<SubJournal> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("User must be authenticated to create a sub-journal");
+    }
+
     const { data, error } = await supabase
       .from("sub_journals")
       .insert({
         journal_id: journalId,
         name,
-        user_id: null,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -253,6 +265,12 @@ export const journalStorage = {
     emotion: string,
     color: string
   ): Promise<Moment> {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error("User must be authenticated to create a moment");
+    }
+
     const { data, error } = await supabase
       .from("moments")
       .insert({
@@ -260,7 +278,7 @@ export const journalStorage = {
         text,
         emotion,
         color,
-        user_id: null,
+        user_id: user.id,
       })
       .select()
       .single();
