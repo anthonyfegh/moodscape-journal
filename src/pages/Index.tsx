@@ -9,6 +9,7 @@ import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
+import { MomentSelectionModal } from "@/components/MomentSelectionModal";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Menu, ArrowLeft, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +17,15 @@ import { journalStorage } from "@/lib/journalStorage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getTypeConfig } from "@/lib/journalTypeConfig";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface AIReflection {
+  id: string;
+  ai_text: string;
+  user_reply?: string;
+  timestamp: string;
+}
 
 interface LogEntry {
   id: string;
@@ -23,6 +33,7 @@ interface LogEntry {
   emotion: string;
   color: string;
   timestamp: Date;
+  ai_reflections?: AIReflection[];
 }
 
 const IndexContent = () => {
@@ -48,6 +59,9 @@ const IndexContent = () => {
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
   const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
   const [rippleActive, setRippleActive] = useState(false);
+  const [momentModalOpen, setMomentModalOpen] = useState(false);
+  const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
+  const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -84,6 +98,7 @@ const IndexContent = () => {
         emotion: m.emotion,
         color: m.color,
         timestamp: new Date(m.timestamp),
+        ai_reflections: m.ai_reflections || [],
       }));
       setLogEntries(entries);
     };
@@ -265,6 +280,7 @@ const IndexContent = () => {
         emotion: personaState,
         color: moodColor,
         timestamp: new Date(),
+        ai_reflections: [],
       };
 
       setLogEntries((prev) => [...prev, newEntry]);
@@ -363,6 +379,74 @@ const IndexContent = () => {
     setEditingText("");
   };
 
+  const handleAvatarClick = () => {
+    if (logEntries.length === 0) {
+      toast.info("Write and save some moments first to reflect on them!");
+      return;
+    }
+    setMomentModalOpen(true);
+  };
+
+  const handleMomentSelect = async (moment: LogEntry) => {
+    setSelectedMoment(moment);
+    setIsGeneratingReflection(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-reflection', {
+        body: {
+          momentText: moment.text,
+          conversationHistory: (moment.ai_reflections || []).flatMap((r) => [
+            { role: 'user', content: moment.text },
+            { role: 'assistant', content: r.ai_text },
+            ...(r.user_reply ? [{ role: 'user', content: r.user_reply }] : [])
+          ])
+        }
+      });
+
+      if (error) {
+        console.error('Error generating reflection:', error);
+        if (error.message?.includes('429')) {
+          toast.error("Too many requests. Please try again in a moment.");
+        } else if (error.message?.includes('402')) {
+          toast.error("AI credits exhausted. Please add credits to continue.");
+        } else {
+          toast.error("Failed to generate reflection. Please try again.");
+        }
+        return;
+      }
+
+      const reflection = data.reflection;
+      
+      // Save AI reflection to database
+      await journalStorage.addAIReflection(moment.id, reflection);
+
+      // Update local state
+      setLogEntries((prev) => prev.map((entry) => {
+        if (entry.id === moment.id) {
+          return {
+            ...entry,
+            ai_reflections: [
+              ...(entry.ai_reflections || []),
+              {
+                id: crypto.randomUUID(),
+                ai_text: reflection,
+                timestamp: new Date().toISOString(),
+              }
+            ]
+          };
+        }
+        return entry;
+      }));
+
+      toast.success("AI reflection added to your moment");
+    } catch (error) {
+      console.error('Error in reflection generation:', error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsGeneratingReflection(false);
+    }
+  };
+
   // Generate micro-comments periodically
   useEffect(() => {
     if (text.length < 20) return;
@@ -411,6 +495,7 @@ const IndexContent = () => {
           personaState={personaState}
           logEntries={logEntries}
           isTyping={isTyping}
+          onClick={handleAvatarClick}
         />
 
         {/* Header with back button and sidebar toggle */}
@@ -581,6 +666,13 @@ const IndexContent = () => {
       </div>
 
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
+
+      <MomentSelectionModal
+        open={momentModalOpen}
+        onClose={() => setMomentModalOpen(false)}
+        moments={logEntries}
+        onSelectMoment={handleMomentSelect}
+      />
     </motion.div>
   );
 };

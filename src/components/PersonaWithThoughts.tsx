@@ -17,9 +17,10 @@ interface PersonaWithThoughtsProps {
   personaState: string;
   logEntries: LogEntry[];
   isTyping: boolean;
+  onClick?: () => void;
 }
 
-export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping }: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping, onClick }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [shouldBlink, setShouldBlink] = useState(false);
@@ -58,6 +59,7 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
   const handleAvatarClick = () => {
     setIsListening(true);
     setTimeout(() => setIsListening(false), 800);
+    onClick?.();
   };
 
   return (

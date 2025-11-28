@@ -54,6 +54,7 @@ export type Database = {
       }
       moments: {
         Row: {
+          ai_reflections: Json | null
           color: string | null
           emotion: string | null
           id: string
@@ -63,6 +64,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          ai_reflections?: Json | null
           color?: string | null
           emotion?: string | null
           id?: string
@@ -72,6 +74,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          ai_reflections?: Json | null
           color?: string | null
           emotion?: string | null
           id?: string
