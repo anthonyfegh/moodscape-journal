@@ -146,7 +146,7 @@ const IndexContent = () => {
       }
 
       // Track word frequency for memory bubbles
-      const newFrequency = new Map(wordFrequency);
+      const newFrequency = new Map<string, number>();
       words.forEach((word) => {
         const normalizedWord = word.toLowerCase().replace(/[^\w]/g, "");
         if (normalizedWord.length > 4) {
