@@ -31,7 +31,7 @@ const Journals = () => {
   const [journals, setJournals] = useState<Journal[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newJournalName, setNewJournalName] = useState("");
-  const [selectedType, setSelectedType] = useState<JournalType>("daily");
+  const [selectedType, setSelectedType] = useState<JournalType>("themed");
 
   useEffect(() => {
     journalStorage.getJournals().then(setJournals);
@@ -52,7 +52,7 @@ const Journals = () => {
       const updatedJournals = await journalStorage.getJournals();
       setJournals(updatedJournals);
       setNewJournalName("");
-      setSelectedType("daily");
+      setSelectedType("themed");
       setIsCreating(false);
       navigate(`/journal/${newJournal.id}`);
     }
@@ -103,7 +103,7 @@ const Journals = () => {
                       if (e.key === "Escape") {
                         setIsCreating(false);
                         setNewJournalName("");
-                        setSelectedType("daily");
+                        setSelectedType("themed");
                       }
                     }}
                     placeholder="Journal name..."
@@ -119,7 +119,7 @@ const Journals = () => {
                       onClick={() => {
                         setIsCreating(false);
                         setNewJournalName("");
-                        setSelectedType("daily");
+                        setSelectedType("themed");
                       }}
                     >
                       Cancel
@@ -140,7 +140,30 @@ const Journals = () => {
             </div>
 
             <div className="space-y-8">
-              {(["daily", "themed", "people", "event", "creative"] as JournalType[]).map((type) => {
+              {/* Weekly tracker for all journals */}
+              {journals.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                      <BookText className="h-5 w-5" />
+                      <h2>Daily Tracking</h2>
+                    </div>
+                    <div className="flex-1 h-px bg-border/30"></div>
+                  </div>
+                  <div className="grid gap-3">
+                    {journals.map((journal) => (
+                      <DailyLogWeekly
+                        key={journal.id}
+                        journalId={journal.id}
+                        onLogToday={() => navigate(`/journal/${journal.id}`)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All journals grouped by type */}
+              {(["themed", "people", "event", "creative"] as JournalType[]).map((type) => {
                 const typeJournals = journalsByType[type] || [];
                 if (typeJournals.length === 0) return null;
 
@@ -157,45 +180,33 @@ const Journals = () => {
                     </div>
                     
                     <div className="grid gap-3">
-                      {type === "daily" ? (
-                        // Special weekly view for daily logs
-                        typeJournals.map((journal) => (
-                          <DailyLogWeekly
+                      {typeJournals.map((journal) => {
+                        const JournalTypeIcon = journalTypeIcons[journal.type] || BookOpen;
+                        
+                        return (
+                          <Card
                             key={journal.id}
-                            journalId={journal.id}
-                            onLogToday={() => navigate(`/journal/${journal.id}`)}
-                          />
-                        ))
-                      ) : (
-                        // Regular cards for other journal types
-                        typeJournals.map((journal) => {
-                          const JournalTypeIcon = journalTypeIcons[journal.type] || BookOpen;
-                          
-                          return (
-                            <Card
-                              key={journal.id}
-                              className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
-                              onClick={() => navigate(`/journal/${journal.id}`)}
-                            >
-                              <div className="flex items-center gap-4">
-                                <div
-                                  className="w-3 h-3 rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: journal.lastMoodColor }}
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-base font-semibold truncate text-foreground mb-1">
-                                    {journal.name}
-                                  </h3>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    <span>Updated {formatDate(journal.updatedAt)}</span>
-                                  </div>
+                            className="p-5 cursor-pointer hover:bg-background/70 transition-colors bg-background/60 backdrop-blur-md border-border/10"
+                            onClick={() => navigate(`/journal/${journal.id}`)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: journal.lastMoodColor }}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-semibold truncate text-foreground mb-1">
+                                  {journal.name}
+                                </h3>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  <span>Updated {formatDate(journal.updatedAt)}</span>
                                 </div>
                               </div>
-                            </Card>
-                          );
-                        })
-                      )}
+                            </div>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </div>
                 );
