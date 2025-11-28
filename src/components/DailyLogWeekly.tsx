@@ -13,8 +13,15 @@ interface DailyLogWeeklyProps {
 export const DailyLogWeekly = ({ journalId, onLogToday }: DailyLogWeeklyProps) => {
   const [weekDays, setWeekDays] = useState<Array<{ date: Date; logged: boolean }>>([]);
   const [todayLogged, setTodayLogged] = useState(false);
+  const [journalName, setJournalName] = useState("");
 
   useEffect(() => {
+    // Get journal name
+    const journal = journalStorage.getJournal(journalId);
+    if (journal) {
+      setJournalName(journal.name);
+    }
+
     // Get current week (Monday to Sunday)
     const today = new Date();
     const currentDay = today.getDay();
@@ -66,18 +73,26 @@ export const DailyLogWeekly = ({ journalId, onLogToday }: DailyLogWeeklyProps) =
   };
 
   return (
-    <Card className="p-6 bg-background/60 backdrop-blur-md border-border/10 mb-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">This Week</h3>
+    <Card className="p-6 bg-background/60 backdrop-blur-md border-border/10">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">{journalName}</h3>
+        </div>
+        {todayLogged && (
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <CheckCircle2 className="h-4 w-4" />
+            <span>Logged today</span>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-7 gap-2 mb-6">
+      <div className="grid grid-cols-7 gap-2 mb-4">
         {weekDays.map((day, index) => (
           <motion.div
             key={index}
             whileHover={{ scale: 1.05 }}
-            className={`flex flex-col items-center p-3 rounded-lg transition-colors ${
+            className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
               isToday(day.date)
                 ? 'bg-primary/20 border-2 border-primary'
                 : 'bg-background/40 border border-border/20'
@@ -86,34 +101,25 @@ export const DailyLogWeekly = ({ journalId, onLogToday }: DailyLogWeeklyProps) =
             <span className="text-xs font-medium text-muted-foreground mb-1">
               {getDayName(day.date)}
             </span>
-            <span className="text-lg font-semibold text-foreground mb-2">
+            <span className="text-sm font-semibold text-foreground mb-1">
               {getDayNumber(day.date)}
             </span>
             {day.logged ? (
-              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <CheckCircle2 className="h-4 w-4 text-primary" />
             ) : (
-              <Circle className="h-5 w-5 text-muted-foreground/30" />
+              <Circle className="h-4 w-4 text-muted-foreground/30" />
             )}
           </motion.div>
         ))}
       </div>
 
-      <div className="flex items-center gap-4">
-        <Button
-          onClick={onLogToday}
-          className="flex-1"
-          size="lg"
-          variant={todayLogged ? "outline" : "default"}
-        >
-          {todayLogged ? "Continue Today's Log" : "Log Today"}
-        </Button>
-        {todayLogged && (
-          <div className="flex items-center gap-2 text-sm text-primary">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>Logged</span>
-          </div>
-        )}
-      </div>
+      <Button
+        onClick={onLogToday}
+        className="w-full"
+        variant={todayLogged ? "outline" : "default"}
+      >
+        {todayLogged ? "Continue Today's Log" : "Log Today"}
+      </Button>
     </Card>
   );
 };

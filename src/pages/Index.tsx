@@ -9,7 +9,6 @@ import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
-import { DailyLogWeekly } from "@/components/DailyLogWeekly";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Menu, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -361,14 +360,6 @@ const IndexContent = () => {
     setEditingText("");
   };
 
-  // Handle clicking "Log Today" button
-  const handleLogToday = () => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
   // Generate micro-comments periodically
   useEffect(() => {
     if (text.length < 20) return;
@@ -439,11 +430,6 @@ const IndexContent = () => {
           <div className="max-w-3xl w-full">
             <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">{journalName}</h1>
             <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
-
-            {/* Daily Log Weekly View - only for daily journals */}
-            {journalType === "daily" && journalId && (
-              <DailyLogWeekly journalId={journalId} onLogToday={handleLogToday} />
-            )}
 
             {/* Continuous Writing Surface - like a sheet of paper */}
             <div
