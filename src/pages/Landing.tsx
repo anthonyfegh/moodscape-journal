@@ -21,24 +21,28 @@ const Landing = () => {
             MoodScape
           </h1>
           
-          <p className="text-xl md:text-2xl text-foreground/70 mb-12 leading-relaxed">
-            A journal that doesn't just store your thoughts — it feels them.
+          <p className="text-xl md:text-2xl text-foreground/70 mb-4 leading-relaxed">
+            A journal that doesn't just store your thoughts — it feels them with you.
+          </p>
+          
+          <p className="text-base md:text-lg text-foreground/60 mb-12 max-w-2xl mx-auto">
+            As you write, MoodScape responds in real time — colors shift, the page breathes, and your emotional patterns become visible.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               asChild
               size="lg"
-              className="bg-foreground/10 hover:bg-foreground/20 text-foreground border border-border/20 text-lg px-8 py-6"
+              className="bg-primary/20 hover:bg-primary/30 text-foreground border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.15)] hover:shadow-[0_0_30px_rgba(var(--primary),0.25)] transition-all text-lg px-8 py-6 rounded-2xl"
             >
-              <Link to="/journal">Start journaling</Link>
+              <Link to="/journals">Start journaling</Link>
             </Button>
             
             <Button
               asChild
               variant="ghost"
               size="lg"
-              className="text-foreground/80 hover:text-foreground hover:bg-background/20 text-lg px-8 py-6"
+              className="text-foreground/80 hover:text-foreground hover:bg-background/20 border border-border/20 text-lg px-8 py-6 rounded-2xl"
             >
               <Link to="/login">Log in</Link>
             </Button>
@@ -49,13 +53,13 @@ const Landing = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6"
+              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6 text-left"
             >
               <h3 className="text-lg font-semibold text-foreground/90 mb-3">
                 Alive while you write
               </h3>
-              <p className="text-foreground/60">
-                The page breathes with your emotions, creating an immersive writing experience that responds to your mood in real-time.
+              <p className="text-foreground/60 text-sm leading-relaxed">
+                The page responds to your emotions in real time — colors, motion, and subtle reactions as you type.
               </p>
             </motion.div>
             
@@ -63,13 +67,13 @@ const Landing = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6"
+              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6 text-left"
             >
               <h3 className="text-lg font-semibold text-foreground/90 mb-3">
                 Emotionally aware, not judgmental
               </h3>
-              <p className="text-foreground/60">
-                AI-powered reflections that understand your emotional patterns and help you explore your thoughts with gentle guidance.
+              <p className="text-foreground/60 text-sm leading-relaxed">
+                MoodScape notices patterns, repetition, and shifts in tone — and reflects them back without labels or scores.
               </p>
             </motion.div>
             
@@ -77,13 +81,13 @@ const Landing = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6"
+              className="backdrop-blur-xl bg-background/10 border border-border/10 rounded-2xl p-6 text-left"
             >
               <h3 className="text-lg font-semibold text-foreground/90 mb-3">
-                Built to grow with you over time
+                Built to grow with you
               </h3>
-              <p className="text-foreground/60">
-                Track emotional patterns, revisit meaningful moments, and watch your personal narrative evolve across different journals.
+              <p className="text-foreground/60 text-sm leading-relaxed">
+                Over time, your journal becomes a living mirror of your inner world, evolving with your story.
               </p>
             </motion.div>
           </div>
