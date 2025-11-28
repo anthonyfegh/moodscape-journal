@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
 import { JournalSidebar } from "@/components/JournalSidebar";
 import { LivingBackground } from "@/components/LivingBackground";
+import { EmotionalInkTrails } from "@/components/EmotionalInkTrails";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +33,8 @@ const Index = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [hoveredMoodColor, setHoveredMoodColor] = useState<string | null>(null);
+  const [caretPosition, setCaretPosition] = useState<{ x: number; y: number } | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -156,6 +159,9 @@ const Index = () => {
       }, 3000);
       setColorResetTimeout(timeout);
     }
+
+    // Update caret position for ink trails
+    setTimeout(updateCaretPosition, 0);
   };
 
   // Handle Enter key to save log entry
@@ -184,6 +190,7 @@ const Index = () => {
       setMoodColor("#fbbf24");
       setPersonaState("neutral");
       setIsTyping(false);
+      setCaretPosition(null);
       if (colorResetTimeout) {
         clearTimeout(colorResetTimeout);
         setColorResetTimeout(null);
@@ -194,6 +201,54 @@ const Index = () => {
       }
     }
   };
+
+  // Track caret position for ink trails
+  const updateCaretPosition = useCallback(() => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const selectionStart = textarea.selectionStart;
+
+    // Create a temporary span to measure caret position
+    const div = document.createElement("div");
+    const style = window.getComputedStyle(textarea);
+    
+    // Copy relevant styles
+    [
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "lineHeight",
+      "letterSpacing",
+      "padding",
+      "border",
+    ].forEach((prop) => {
+      div.style[prop as any] = style[prop as any];
+    });
+
+    div.style.position = "absolute";
+    div.style.visibility = "hidden";
+    div.style.whiteSpace = "pre-wrap";
+    div.style.wordWrap = "break-word";
+    div.style.width = `${textarea.clientWidth}px`;
+
+    div.textContent = textarea.value.substring(0, selectionStart);
+    document.body.appendChild(div);
+
+    const rect = textarea.getBoundingClientRect();
+    const span = document.createElement("span");
+    span.textContent = "|";
+    div.appendChild(span);
+
+    const spanRect = span.getBoundingClientRect();
+
+    setCaretPosition({
+      x: spanRect.left - rect.left,
+      y: spanRect.top - rect.top,
+    });
+
+    document.body.removeChild(div);
+  }, []);
 
   // Handle editing a moment
   const handleEditMoment = (momentId: string) => {
@@ -327,13 +382,21 @@ const Index = () => {
                   {/* Live Input - blends into the same page */}
                   <div className="relative">
                     <textarea
+                      ref={textareaRef}
                       value={text}
                       onChange={handleTextChange}
                       onKeyDown={handleKeyDown}
+                      onSelect={updateCaretPosition}
+                      onClick={updateCaretPosition}
                       placeholder="Continue writing..."
                       className="w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-foreground placeholder:text-muted-foreground/40"
                       rows={6}
                       style={{ lineHeight: "32px" }}
+                    />
+                    <EmotionalInkTrails
+                      isTyping={isTyping}
+                      moodColor={moodColor}
+                      caretPosition={caretPosition}
                     />
                     <MicroComments comments={microComments} isTyping={isTyping} />
                     <MemoryBubbles memory={memoryBubble} />
