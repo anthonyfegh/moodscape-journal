@@ -306,7 +306,7 @@ const IndexContent = () => {
   }, [text]);
 
   return (
-    <div style={{ backgroundColor: "#c0b6ac" }} className="min-h-screen flex w-full relative">
+    <div className="min-h-screen flex w-full relative">
       <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
 
       <div className="flex-1 min-h-screen relative z-10">
