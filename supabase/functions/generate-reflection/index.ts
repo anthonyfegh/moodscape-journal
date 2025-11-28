@@ -85,9 +85,38 @@ serve(async (req) => {
     const data = await response.json();
     const reflection = data.choices[0].message.content;
 
-    console.log('Generated reflection successfully');
+    // Generate a brief summary (2-5 words)
+    const summaryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: 'Generate a 2-5 word summary that captures the essence of this reflection. Be poetic and emotional. Examples: "Finding Peace Within", "Reconnecting with Joy", "Processing Loss", "Creative Breakthrough"'
+          },
+          {
+            role: 'user',
+            content: `Moment: ${momentText}\n\nReflection: ${reflection}`
+          }
+        ],
+        temperature: 0.8,
+      }),
+    });
 
-    return new Response(JSON.stringify({ reflection }), {
+    let summary = 'Reflection';
+    if (summaryResponse.ok) {
+      const summaryData = await summaryResponse.json();
+      summary = summaryData.choices[0].message.content.trim().replace(/['"]/g, '');
+    }
+
+    console.log('Generated reflection and summary successfully');
+
+    return new Response(JSON.stringify({ reflection, summary }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
