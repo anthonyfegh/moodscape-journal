@@ -687,43 +687,24 @@ const IndexContent = () => {
             <p className="text-muted-foreground mb-6 text-center">Write freely, and watch your emotions come alive</p>
 
             {/* Centered layout with moments on the side */}
-            <div className="flex gap-4 justify-center items-start">
+            <div className="flex gap-4 justify-center items-start relative">
               {/* Left column: Compact Moments */}
-              <div className="space-y-3 w-64 flex-shrink-0 relative z-10">
+              <div className={`space-y-3 w-64 flex-shrink-0 ${isSelectingMoment ? 'opacity-0 pointer-events-none' : ''}`}>
                 <AnimatePresence>
                   {logEntries.map((entry, index) => (
                     <motion.div
                       key={entry.id}
                       initial={{ opacity: 0, x: -20 }}
-                      animate={
-                        isSelectingMoment
-                          ? { 
-                              opacity: 1, 
-                              x: 0, 
-                              scale: 1.4, 
-                              y: 0,
-                              zIndex: 50
-                            }
-                          : { opacity: 1, x: 0, scale: 1, y: 0, zIndex: 1 }
-                      }
+                      animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
-                      transition={{ 
-                        duration: 0.4, 
-                        delay: isSelectingMoment ? index * 0.08 : index * 0.05,
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 20
-                      }}
-                      onMouseEnter={() => !isSelectingMoment && setHoveredMoodColor(entry.color)}
-                      onMouseLeave={() => !isSelectingMoment && setHoveredMoodColor(null)}
-                      onClick={() => isSelectingMoment ? handleMomentSelect(entry) : handleEditMoment(entry.id, true)}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      onMouseEnter={() => setHoveredMoodColor(entry.color)}
+                      onMouseLeave={() => setHoveredMoodColor(null)}
+                      onClick={() => handleEditMoment(entry.id, true)}
                       className="cursor-pointer"
-                      style={{ zIndex: isSelectingMoment ? 50 : 1 }}
                     >
                       <Card 
-                        className={`relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2 ${
-                          isSelectingMoment ? "shadow-2xl ring-4 ring-primary/20" : ""
-                        }`}
+                        className="relative p-3 bg-background/40 backdrop-blur-sm hover:bg-background/60 transition-all border-2"
                         style={{ borderColor: entry.color }}
                       >
                         {/* Content */}
@@ -741,9 +722,7 @@ const IndexContent = () => {
                               </span>
                             </div>
                           </div>
-                          <p className={`text-xs leading-relaxed text-foreground whitespace-pre-wrap ${
-                            isSelectingMoment ? "" : "line-clamp-2"
-                          }`}>
+                          <p className="text-xs leading-relaxed text-foreground whitespace-pre-wrap line-clamp-2">
                             {entry.text}
                           </p>
                         </div>
@@ -752,6 +731,60 @@ const IndexContent = () => {
                   ))}
                 </AnimatePresence>
               </div>
+
+              {/* Enlarged centered moments during selection */}
+              {isSelectingMoment && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                  <div className="max-h-[80vh] overflow-y-auto pointer-events-auto px-4 py-8">
+                    <div className="space-y-6 max-w-2xl mx-auto">
+                      <AnimatePresence>
+                        {logEntries.map((entry, index) => (
+                          <motion.div
+                            key={entry.id}
+                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                            transition={{ 
+                              duration: 0.4, 
+                              delay: index * 0.08,
+                              type: "spring",
+                              stiffness: 200,
+                              damping: 20
+                            }}
+                            onClick={() => handleMomentSelect(entry)}
+                            className="cursor-pointer"
+                          >
+                            <Card 
+                              className="relative p-6 bg-background/95 backdrop-blur-xl hover:bg-background transition-all border-2 shadow-2xl ring-4 ring-primary/20"
+                              style={{ borderColor: entry.color }}
+                            >
+                              {/* Content */}
+                              <div>
+                                <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+                                  <span className="capitalize font-medium">{entry.emotion}</span>
+                                  <span>•</span>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span>
+                                      {entry.timestamp.toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                                  {entry.text}
+                                </p>
+                              </div>
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Center: Writing Surface */}
               <motion.div
