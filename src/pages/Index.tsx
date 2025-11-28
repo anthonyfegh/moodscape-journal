@@ -614,13 +614,31 @@ const IndexContent = () => {
                               style={{ lineHeight: "32px" }}
                             />
                           ) : (
-                            <div className="relative">
+                            <div className="relative space-y-4">
                               <p
                                 className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
                                 style={{ lineHeight: "32px" }}
                               >
                                 {entry.text}
                               </p>
+
+                              {/* AI Reflections - soft, handwritten style */}
+                              {entry.ai_reflections && entry.ai_reflections.length > 0 && (
+                                <div className="pl-6 border-l-2 border-muted-foreground/10 space-y-3">
+                                  {entry.ai_reflections.map((reflection) => (
+                                    <div key={reflection.id} className="space-y-2">
+                                      <p className="text-base italic text-muted-foreground/80 leading-relaxed" style={{ lineHeight: "30px" }}>
+                                        {reflection.ai_text}
+                                      </p>
+                                      {reflection.user_reply && (
+                                        <p className="text-base text-foreground/80 leading-relaxed pl-4" style={{ lineHeight: "30px" }}>
+                                          {reflection.user_reply}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </MomentSpotlight>
