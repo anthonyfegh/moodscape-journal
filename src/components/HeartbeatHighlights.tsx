@@ -86,8 +86,8 @@ export const HeartbeatHighlights = ({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 p-2 text-lg leading-relaxed text-foreground whitespace-pre-wrap"
-      style={{ lineHeight: "32px" }}
+      className="pointer-events-none absolute inset-0 p-2 text-base leading-relaxed text-foreground whitespace-pre-wrap"
+      style={{ lineHeight: "28px" }}
     >
       {renderTextWithHighlights()}
     </div>
