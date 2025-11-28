@@ -9,13 +9,6 @@ interface JournalTypeSelectorProps {
 
 const journalTypes = [
   {
-    type: "daily" as JournalType,
-    icon: BookText,
-    label: "Daily Log",
-    description: "Quick, expressive stream-of-consciousness",
-    color: "#fbbf24",
-  },
-  {
     type: "themed" as JournalType,
     icon: Lightbulb,
     label: "Themed",
