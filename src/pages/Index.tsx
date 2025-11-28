@@ -710,15 +710,25 @@ const IndexContent = () => {
 
         {/* Header with back button and sidebar toggle */}
         <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between">
-          <Button
-            onClick={() => navigate("/journal")}
-            variant="ghost"
-            size="sm"
-            className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            All Journals
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => navigate("/")}
+              variant="ghost"
+              size="sm"
+              className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+            <Button
+              onClick={() => navigate("/journal")}
+              variant="ghost"
+              size="sm"
+              className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
+            >
+              All Journals
+            </Button>
+          </div>
           <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
             <Menu className="h-4 w-4" />
           </SidebarTrigger>
