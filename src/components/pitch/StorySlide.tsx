@@ -36,38 +36,59 @@ export const StorySlide = () => {
         transition={{ duration: 1.2, ease: "easeOut" }}
         className="max-w-5xl text-center space-y-16 relative z-10"
       >
-        <motion.h2
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 30, scale: 0.95 }}
-          transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="text-4xl md:text-7xl font-light text-foreground leading-tight"
-        >
-          Most of us don't lack{" "}
-          <span className="font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            self-awareness
-          </span>{" "}
-          —<br />
-          we lack the space to understand what we feel.
-        </motion.h2>
-
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 1.2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-6"
         >
-          <p className="text-2xl md:text-4xl font-light text-foreground/80 leading-relaxed">
-            Emotions don't sit still.
-          </p>
+          <motion.h2
+            animate={isInView ? {
+              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+            } : {}}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="text-5xl md:text-8xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent bg-[length:200%_auto] leading-tight"
+            style={{ backgroundSize: "200% auto" }}
+          >
+            We built Yuri —
+          </motion.h2>
+          <motion.h3
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+            className="text-3xl md:text-5xl font-light text-foreground/90"
+          >
+            the first journal with{" "}
+            <span className="font-semibold">Emotional UX</span>.
+          </motion.h3>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-8"
+        >
+          <motion.p
+            className="text-2xl md:text-4xl font-light text-foreground/80 leading-relaxed"
+          >
+            Yuri reads not just your words,
+          </motion.p>
           <motion.p
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 1, delay: 1, ease: "easeOut" }}
-            className="text-xl md:text-3xl font-light text-foreground/60 leading-relaxed"
+            transition={{ duration: 1, delay: 1.2, ease: "easeOut" }}
+            className="text-xl md:text-3xl font-light text-foreground/70 leading-relaxed"
           >
-            They shift, move, contradict, collide…<br />
-            and traditional journaling treats them like{" "}
-            <span className="text-foreground/40 line-through">static text</span>.
+            but <span className="font-semibold text-foreground/90 italic">how</span> you write them —
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+            transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
+            className="text-2xl md:text-4xl font-medium bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent"
+          >
+            and visually responds in real time.
           </motion.p>
         </motion.div>
       </motion.div>
