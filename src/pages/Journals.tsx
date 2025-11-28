@@ -32,9 +32,24 @@ const Journals = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newJournalName, setNewJournalName] = useState("");
   const [selectedType, setSelectedType] = useState<JournalType>("themed");
+  const [dailyJournalId, setDailyJournalId] = useState<string | null>(null);
 
   useEffect(() => {
-    journalStorage.getJournals().then(setJournals);
+    const initializeJournals = async () => {
+      const allJournals = await journalStorage.getJournals();
+      setJournals(allJournals);
+      
+      // Find or create default daily journal
+      let dailyJournal = allJournals.find(j => j.type === "daily");
+      if (!dailyJournal) {
+        dailyJournal = await journalStorage.createJournal("Daily Log", "daily");
+        const updatedJournals = await journalStorage.getJournals();
+        setJournals(updatedJournals);
+      }
+      setDailyJournalId(dailyJournal.id);
+    };
+    
+    initializeJournals();
   }, []);
 
   // Group journals by type
@@ -140,8 +155,8 @@ const Journals = () => {
             </div>
 
             <div className="space-y-8">
-              {/* Weekly tracker for daily logs only */}
-              {journalsByType["daily"]?.length > 0 && (
+              {/* Weekly tracker for daily logs - always displayed */}
+              {dailyJournalId && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
@@ -151,8 +166,8 @@ const Journals = () => {
                     <div className="flex-1 h-px bg-border/30"></div>
                   </div>
                   <DailyLogWeekly
-                    journalId={journalsByType["daily"][0].id}
-                    onLogToday={() => navigate(`/journal/${journalsByType["daily"][0].id}`)}
+                    journalId={dailyJournalId}
+                    onLogToday={() => navigate(`/journal/${dailyJournalId}`)}
                   />
                 </div>
               )}
