@@ -7,12 +7,7 @@ interface HeartbeatHighlightsProps {
   threshold?: number;
 }
 
-export const HeartbeatHighlights = ({
-  text,
-  wordFrequency,
-  moodColor,
-  threshold = 2,
-}: HeartbeatHighlightsProps) => {
+export const HeartbeatHighlights = ({ text, wordFrequency, moodColor, threshold = 2 }: HeartbeatHighlightsProps) => {
   // Convert hex to rgba with low opacity
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -21,7 +16,7 @@ export const HeartbeatHighlights = ({
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  const highlightColor = hexToRgba(moodColor, 0.2);
+  const highlightColor = hexToRgba(moodColor, 0.9);
 
   // Split text into words while preserving spaces and newlines
   const renderTextWithHighlights = () => {
@@ -29,7 +24,7 @@ export const HeartbeatHighlights = ({
 
     const parts: JSX.Element[] = [];
     let currentIndex = 0;
-    
+
     // Match words and capture surrounding whitespace
     const regex = /(\S+)|(\s+)/g;
     let match;
@@ -37,7 +32,7 @@ export const HeartbeatHighlights = ({
     while ((match = regex.exec(text)) !== null) {
       const token = match[0];
       const isWord = match[1]; // Matched a word (non-whitespace)
-      
+
       if (isWord) {
         const word = token.toLowerCase();
         const frequency = wordFrequency.get(word) || 0;
@@ -65,7 +60,7 @@ export const HeartbeatHighlights = ({
               }}
             >
               {token}
-            </motion.span>
+            </motion.span>,
           );
         } else {
           parts.push(<span key={`word-${currentIndex}`}>{token}</span>);
@@ -74,7 +69,7 @@ export const HeartbeatHighlights = ({
         // Whitespace (spaces, newlines, tabs)
         parts.push(<span key={`space-${currentIndex}`}>{token}</span>);
       }
-      
+
       currentIndex++;
     }
 
