@@ -430,14 +430,14 @@ const IndexContent = () => {
         </div>
 
         <div className="min-h-screen flex flex-col items-center p-8 pt-20">
-          <div className="max-w-6xl w-full">
-            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">{journalName}</h1>
-            <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
+          <div className="max-w-4xl w-full mx-auto">
+            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground text-center">{journalName}</h1>
+            <p className="text-muted-foreground mb-6 text-center">Write freely, and watch your emotions come alive</p>
 
-            {/* Two-column layout: Moments on left, Writing area on right */}
-            <div className="grid grid-cols-[400px_1fr] gap-6">
-              {/* Left column: Inline Moments */}
-              <div className="space-y-4">
+            {/* Centered layout with moments on the side */}
+            <div className="flex gap-4 justify-center items-start">
+              {/* Left column: Compact Moments */}
+              <div className="space-y-3 w-64 flex-shrink-0">
                 <AnimatePresence>
                   {logEntries.map((entry, index) => (
                     <motion.div
@@ -451,7 +451,7 @@ const IndexContent = () => {
                       onClick={() => handleEditMoment(entry.id, true)}
                       className="cursor-pointer"
                     >
-                      <Card className="relative p-4 bg-background/40 backdrop-blur-sm border-border/20 hover:bg-background/60 transition-all">
+                      <Card className="relative p-3 bg-background/40 backdrop-blur-sm border-border/20 hover:bg-background/60 transition-all">
                         {/* Mood color indicator */}
                         <div
                           className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
@@ -459,8 +459,8 @@ const IndexContent = () => {
                         />
 
                         {/* Content */}
-                        <div className="ml-3">
-                          <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                        <div className="ml-2">
+                          <div className="flex items-center gap-1.5 mb-1.5 text-xs text-muted-foreground">
                             <span className="capitalize font-medium">{entry.emotion}</span>
                             <span>•</span>
                             <div className="flex items-center gap-1">
@@ -473,7 +473,7 @@ const IndexContent = () => {
                               </span>
                             </div>
                           </div>
-                          <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap line-clamp-3">
+                          <p className="text-xs leading-relaxed text-foreground whitespace-pre-wrap line-clamp-2">
                             {entry.text}
                           </p>
                         </div>
@@ -483,9 +483,9 @@ const IndexContent = () => {
                 </AnimatePresence>
               </div>
 
-              {/* Right column: Writing Surface */}
+              {/* Center: Writing Surface */}
               <div
-                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative min-h-[600px]"
+                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative min-h-[600px] w-[700px] flex-shrink-0"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
