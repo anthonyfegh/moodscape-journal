@@ -8,7 +8,12 @@ interface LivingBackgroundProps {
   intensityMultiplier?: number;
 }
 
-export const LivingBackground = ({ moodColor, isTyping, rippleActive = false, intensityMultiplier = 1.0 }: LivingBackgroundProps) => {
+export const LivingBackground = ({
+  moodColor,
+  isTyping,
+  rippleActive = false,
+  intensityMultiplier = 1.0,
+}: LivingBackgroundProps) => {
   // Simpler tie-dye: gentle watercolor wash
   const backgroundGradients = useMemo(() => {
     const hex = moodColor.replace("#", "");
@@ -121,7 +126,7 @@ export const LivingBackground = ({ moodColor, isTyping, rippleActive = false, in
       {/* Comet 3 — Bottom-left corner */}
       <motion.div
         className="absolute"
-        style={{ width: "450px", height: "260px", filter: "blur(55px)" }}
+        style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
         initial={false}
         animate={{
           x: isTyping ? ["5vw", "45vw", "5vw"] : "5vw",
@@ -143,7 +148,7 @@ export const LivingBackground = ({ moodColor, isTyping, rippleActive = false, in
       {/* Comet 4 — Bottom-right corner */}
       <motion.div
         className="absolute"
-        style={{ width: "380px", height: "200px", filter: "blur(60px)" }}
+        style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
           x: isTyping ? ["75vw", "45vw", "75vw"] : "75vw",
