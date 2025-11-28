@@ -224,7 +224,6 @@ const Landing = () => {
         {/* Scroll-driven pitch sections */}
         <StorySlide />
         <ProblemSlide />
-        <SolutionSlide />
         <FeaturesSlide />
         <TechSlide />
         <CompetitorSlide />
