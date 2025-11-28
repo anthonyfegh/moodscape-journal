@@ -14,7 +14,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 27 24% 72%;
+    --background: 240 4% 95%;
     --foreground: 240 5% 10%;
 
     --card: 0 0% 98%;
@@ -72,11 +72,15 @@ All colors MUST be HSL.
 
     --sidebar: 0 0% 98%;
 
-    --font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    --font-sans:
+      "Poppins", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, "Noto Sans", sans-serif;
 
-    --font-serif: 'Merriweather', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-serif: "Merriweather", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --font-mono:
+      "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+      monospace;
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 
