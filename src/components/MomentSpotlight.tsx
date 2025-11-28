@@ -53,7 +53,7 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
             marginLeft: -100,
             marginTop: -100,
             background: `radial-gradient(circle, ${moodColor}40 0%, ${moodColor}20 30%, transparent 70%)`,
-            borderRadius: "50%",
+            borderRadius: "10%",
           }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -61,11 +61,9 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
           transition={{ duration: 0.2, ease: "easeOut" }}
         />
       )}
-      
+
       {/* Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };
