@@ -40,6 +40,7 @@ const Journals = () => {
   const [entrySummary, setEntrySummary] = useState("");
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [summarizingJournalId, setSummarizingJournalId] = useState<string | null>(null);
+  const [currentMoodColor, setCurrentMoodColor] = useState("#fbbf24");
 
   useEffect(() => {
     const initializeJournals = async () => {
@@ -89,10 +90,11 @@ const Journals = () => {
     });
   };
 
-  const handleSummarizeJournal = async (journalId: string, e: React.MouseEvent) => {
+  const handleSummarizeJournal = async (journalId: string, moodColor: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click navigation
     
     setSummarizingJournalId(journalId);
+    setCurrentMoodColor(moodColor);
     setIsGeneratingSummary(true);
     
     try {
@@ -285,7 +287,7 @@ const Journals = () => {
                                 </div>
                               </div>
                               <Button
-                                onClick={(e) => handleSummarizeJournal(journal.id, e)}
+                                onClick={(e) => handleSummarizeJournal(journal.id, journal.lastMoodColor, e)}
                                 disabled={isGeneratingSummary && summarizingJournalId === journal.id}
                                 variant="ghost"
                                 size="sm"
@@ -320,6 +322,7 @@ const Journals = () => {
         onClose={() => setShowSummaryModal(false)}
         summary={entrySummary}
         onInsert={handleInsertSummary}
+        moodColor={currentMoodColor}
       />
     </motion.div>
   );
