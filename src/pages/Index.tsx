@@ -76,6 +76,8 @@ const IndexContent = () => {
   const replyInputRef = useRef<HTMLInputElement>(null);
   const [guidance, setGuidance] = useState<string>("");
   const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
+  const [highlightedMomentId, setHighlightedMomentId] = useState<string | null>(null);
+  const momentRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Load journal and create default sub-journal if needed
   useEffect(() => {
@@ -472,6 +474,16 @@ const IndexContent = () => {
     setIsGeneratingReflection(true);
     setIsSelectingMoment(false);
 
+    // Scroll to and highlight the moment
+    setTimeout(() => {
+      const momentElement = momentRefs.current.get(moment.id);
+      if (momentElement) {
+        momentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedMomentId(moment.id);
+        setTimeout(() => setHighlightedMomentId(null), 2000);
+      }
+    }, 100);
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-reflection', {
         body: {
@@ -851,8 +863,17 @@ const IndexContent = () => {
                     {logEntries.map((entry) => (
                       <motion.div
                         key={entry.id}
+                        ref={(el) => {
+                          if (el) momentRefs.current.set(entry.id, el);
+                        }}
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0,
+                          boxShadow: highlightedMomentId === entry.id 
+                            ? `0 0 40px ${entry.color}80, 0 0 20px ${entry.color}60` 
+                            : 'none'
+                        }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                       >
