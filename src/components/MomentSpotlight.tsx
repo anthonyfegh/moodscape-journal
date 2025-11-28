@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 
 interface MomentSpotlightProps {
@@ -42,25 +42,27 @@ export const MomentSpotlight = ({ moodColor, children, onMomentClick, onHoverCha
       onClick={onMomentClick}
     >
       {/* Spotlight orb that follows cursor */}
-      {isHovering && (
-        <motion.div
-          className="absolute pointer-events-none"
-          style={{
-            left: mousePosition.x,
-            top: mousePosition.y,
-            width: 200,
-            height: 200,
-            marginLeft: -100,
-            marginTop: -100,
-            background: `radial-gradient(circle, ${moodColor}40 0%, ${moodColor}20 30%, transparent 70%)`,
-            borderRadius: "50%",
-          }}
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        />
-      )}
+      <AnimatePresence>
+        {isHovering && (
+          <motion.div
+            className="absolute pointer-events-none"
+            style={{
+              left: mousePosition.x,
+              top: mousePosition.y,
+              width: 200,
+              height: 200,
+              marginLeft: -100,
+              marginTop: -100,
+              background: `radial-gradient(circle, ${moodColor}40 0%, ${moodColor}20 30%, transparent 70%)`,
+              borderRadius: "50%",
+            }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Content */}
       <div className="relative z-10">{children}</div>
