@@ -34,7 +34,7 @@ const Journals = () => {
   const [selectedType, setSelectedType] = useState<JournalType>("daily");
 
   useEffect(() => {
-    setJournals(journalStorage.getJournals());
+    journalStorage.getJournals().then(setJournals);
   }, []);
 
   // Group journals by type
@@ -46,10 +46,11 @@ const Journals = () => {
     return acc;
   }, {} as Record<JournalType, Journal[]>);
 
-  const handleCreateJournal = () => {
+  const handleCreateJournal = async () => {
     if (newJournalName.trim()) {
-      const newJournal = journalStorage.createJournal(newJournalName.trim(), selectedType);
-      setJournals(journalStorage.getJournals());
+      const newJournal = await journalStorage.createJournal(newJournalName.trim(), selectedType);
+      const updatedJournals = await journalStorage.getJournals();
+      setJournals(updatedJournals);
       setNewJournalName("");
       setSelectedType("daily");
       setIsCreating(false);

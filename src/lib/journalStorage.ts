@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type JournalType = "daily" | "themed" | "people" | "event" | "creative";
 
 export interface Journal {
@@ -26,134 +28,261 @@ export interface Moment {
   timestamp: string;
 }
 
-const JOURNALS_KEY = "journals";
-const SUB_JOURNALS_KEY = "subJournals";
-const MOMENTS_KEY = "moments";
-
 export const journalStorage = {
   // Journals
-  getJournals(): Journal[] {
-    const data = localStorage.getItem(JOURNALS_KEY);
-    return data ? JSON.parse(data) : [];
+  async getJournals(): Promise<Journal[]> {
+    const { data, error } = await supabase
+      .from("journals")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching journals:", error);
+      return [];
+    }
+
+    return (data || []).map((j) => ({
+      id: j.id,
+      name: j.name,
+      type: (j.type || "daily") as JournalType,
+      lastMoodColor: j.last_mood_color || "#fbbf24",
+      createdAt: j.created_at || new Date().toISOString(),
+      updatedAt: j.updated_at || new Date().toISOString(),
+    }));
   },
 
-  getJournal(id: string): Journal | undefined {
-    return this.getJournals().find((j) => j.id === id);
-  },
+  async getJournal(id: string): Promise<Journal | undefined> {
+    const { data, error } = await supabase
+      .from("journals")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
 
-  createJournal(name: string, type: JournalType = "daily"): Journal {
-    const journals = this.getJournals();
-    const newJournal: Journal = {
-      id: Date.now().toString(),
-      name,
-      type,
-      lastMoodColor: "#fbbf24",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    if (error || !data) {
+      console.error("Error fetching journal:", error);
+      return undefined;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      type: (data.type || "daily") as JournalType,
+      lastMoodColor: data.last_mood_color || "#fbbf24",
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
     };
-    journals.push(newJournal);
-    localStorage.setItem(JOURNALS_KEY, JSON.stringify(journals));
-    return newJournal;
   },
 
-  updateJournal(id: string, updates: Partial<Journal>): void {
-    const journals = this.getJournals();
-    const index = journals.findIndex((j) => j.id === id);
-    if (index !== -1) {
-      journals[index] = {
-        ...journals[index],
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(JOURNALS_KEY, JSON.stringify(journals));
+  async createJournal(name: string, type: JournalType = "daily"): Promise<Journal> {
+    const { data, error } = await supabase
+      .from("journals")
+      .insert({
+        name,
+        type,
+        last_mood_color: "#fbbf24",
+        user_id: null,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("Error creating journal:", error);
+      throw new Error("Failed to create journal");
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      type: (data.type || "daily") as JournalType,
+      lastMoodColor: data.last_mood_color || "#fbbf24",
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
+    };
+  },
+
+  async updateJournal(id: string, updates: Partial<Journal>): Promise<void> {
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.type) dbUpdates.type = updates.type;
+    if (updates.lastMoodColor) dbUpdates.last_mood_color = updates.lastMoodColor;
+
+    const { error } = await supabase
+      .from("journals")
+      .update(dbUpdates)
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating journal:", error);
     }
   },
 
-  deleteJournal(id: string): void {
-    const journals = this.getJournals().filter((j) => j.id !== id);
-    localStorage.setItem(JOURNALS_KEY, JSON.stringify(journals));
-    
-    // Delete associated sub-journals and moments
-    const subJournals = this.getSubJournals(id);
-    subJournals.forEach((sj) => this.deleteSubJournal(sj.id));
+  async deleteJournal(id: string): Promise<void> {
+    // Delete associated sub-journals first
+    const subJournals = await this.getSubJournals(id);
+    for (const sj of subJournals) {
+      await this.deleteSubJournal(sj.id);
+    }
+
+    // Delete the journal
+    const { error } = await supabase.from("journals").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting journal:", error);
+    }
   },
 
   // Sub-Journals
-  getSubJournals(journalId: string): SubJournal[] {
-    const data = localStorage.getItem(SUB_JOURNALS_KEY);
-    const all: SubJournal[] = data ? JSON.parse(data) : [];
-    return all.filter((sj) => sj.journalId === journalId);
+  async getSubJournals(journalId: string): Promise<SubJournal[]> {
+    const { data, error } = await supabase
+      .from("sub_journals")
+      .select("*")
+      .eq("journal_id", journalId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching sub-journals:", error);
+      return [];
+    }
+
+    return (data || []).map((sj) => ({
+      id: sj.id,
+      journalId: sj.journal_id,
+      name: sj.name,
+      createdAt: sj.created_at || new Date().toISOString(),
+      updatedAt: sj.updated_at || new Date().toISOString(),
+    }));
   },
 
-  getSubJournal(id: string): SubJournal | undefined {
-    const data = localStorage.getItem(SUB_JOURNALS_KEY);
-    const all: SubJournal[] = data ? JSON.parse(data) : [];
-    return all.find((sj) => sj.id === id);
-  },
+  async getSubJournal(id: string): Promise<SubJournal | undefined> {
+    const { data, error } = await supabase
+      .from("sub_journals")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
 
-  createSubJournal(journalId: string, name: string): SubJournal {
-    const data = localStorage.getItem(SUB_JOURNALS_KEY);
-    const subJournals: SubJournal[] = data ? JSON.parse(data) : [];
-    const newSubJournal: SubJournal = {
-      id: Date.now().toString(),
-      journalId,
-      name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    if (error || !data) {
+      console.error("Error fetching sub-journal:", error);
+      return undefined;
+    }
+
+    return {
+      id: data.id,
+      journalId: data.journal_id,
+      name: data.name,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
     };
-    subJournals.push(newSubJournal);
-    localStorage.setItem(SUB_JOURNALS_KEY, JSON.stringify(subJournals));
-    return newSubJournal;
   },
 
-  deleteSubJournal(id: string): void {
-    const data = localStorage.getItem(SUB_JOURNALS_KEY);
-    const subJournals: SubJournal[] = data ? JSON.parse(data) : [];
-    const filtered = subJournals.filter((sj) => sj.id !== id);
-    localStorage.setItem(SUB_JOURNALS_KEY, JSON.stringify(filtered));
-    
-    // Delete associated moments
-    const moments = this.getMoments(id);
-    moments.forEach((m) => this.deleteMoment(m.id));
-  },
+  async createSubJournal(journalId: string, name: string): Promise<SubJournal> {
+    const { data, error } = await supabase
+      .from("sub_journals")
+      .insert({
+        journal_id: journalId,
+        name,
+        user_id: null,
+      })
+      .select()
+      .single();
 
-  // Moments
-  getMoments(subJournalId: string): Moment[] {
-    const data = localStorage.getItem(MOMENTS_KEY);
-    const all: Moment[] = data ? JSON.parse(data) : [];
-    return all.filter((m) => m.subJournalId === subJournalId);
-  },
+    if (error || !data) {
+      console.error("Error creating sub-journal:", error);
+      throw new Error("Failed to create sub-journal");
+    }
 
-  createMoment(subJournalId: string, text: string, emotion: string, color: string): Moment {
-    const data = localStorage.getItem(MOMENTS_KEY);
-    const moments: Moment[] = data ? JSON.parse(data) : [];
-    const newMoment: Moment = {
-      id: Date.now().toString(),
-      subJournalId,
-      text,
-      emotion,
-      color,
-      timestamp: new Date().toISOString(),
+    return {
+      id: data.id,
+      journalId: data.journal_id,
+      name: data.name,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
     };
-    moments.push(newMoment);
-    localStorage.setItem(MOMENTS_KEY, JSON.stringify(moments));
-    return newMoment;
   },
 
-  updateMoment(id: string, text: string): void {
-    const data = localStorage.getItem(MOMENTS_KEY);
-    const moments: Moment[] = data ? JSON.parse(data) : [];
-    const index = moments.findIndex((m) => m.id === id);
-    if (index !== -1) {
-      moments[index].text = text;
-      localStorage.setItem(MOMENTS_KEY, JSON.stringify(moments));
+  async deleteSubJournal(id: string): Promise<void> {
+    // Delete associated moments first
+    const moments = await this.getMoments(id);
+    for (const m of moments) {
+      await this.deleteMoment(m.id);
+    }
+
+    // Delete the sub-journal
+    const { error } = await supabase.from("sub_journals").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting sub-journal:", error);
     }
   },
 
-  deleteMoment(id: string): void {
-    const data = localStorage.getItem(MOMENTS_KEY);
-    const moments: Moment[] = data ? JSON.parse(data) : [];
-    const filtered = moments.filter((m) => m.id !== id);
-    localStorage.setItem(MOMENTS_KEY, JSON.stringify(filtered));
+  // Moments
+  async getMoments(subJournalId: string): Promise<Moment[]> {
+    const { data, error } = await supabase
+      .from("moments")
+      .select("*")
+      .eq("sub_journal_id", subJournalId)
+      .order("timestamp", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching moments:", error);
+      return [];
+    }
+
+    return (data || []).map((m) => ({
+      id: m.id,
+      subJournalId: m.sub_journal_id,
+      text: m.text,
+      emotion: m.emotion || "",
+      color: m.color || "#fbbf24",
+      timestamp: m.timestamp || new Date().toISOString(),
+    }));
+  },
+
+  async createMoment(
+    subJournalId: string,
+    text: string,
+    emotion: string,
+    color: string
+  ): Promise<Moment> {
+    const { data, error } = await supabase
+      .from("moments")
+      .insert({
+        sub_journal_id: subJournalId,
+        text,
+        emotion,
+        color,
+        user_id: null,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("Error creating moment:", error);
+      throw new Error("Failed to create moment");
+    }
+
+    return {
+      id: data.id,
+      subJournalId: data.sub_journal_id,
+      text: data.text,
+      emotion: data.emotion || "",
+      color: data.color || "#fbbf24",
+      timestamp: data.timestamp || new Date().toISOString(),
+    };
+  },
+
+  async updateMoment(id: string, text: string): Promise<void> {
+    const { error } = await supabase.from("moments").update({ text }).eq("id", id);
+
+    if (error) {
+      console.error("Error updating moment:", error);
+    }
+  },
+
+  async deleteMoment(id: string): Promise<void> {
+    const { error } = await supabase.from("moments").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting moment:", error);
+    }
   },
 };

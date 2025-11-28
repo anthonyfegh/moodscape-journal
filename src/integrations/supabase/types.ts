@@ -20,24 +20,27 @@ export type Database = {
           id: string
           last_mood_color: string | null
           name: string
+          type: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           last_mood_color?: string | null
           name: string
+          type?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           last_mood_color?: string | null
           name?: string
+          type?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -57,7 +60,7 @@ export type Database = {
           sub_journal_id: string
           text: string
           timestamp: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           color?: string | null
@@ -66,7 +69,7 @@ export type Database = {
           sub_journal_id: string
           text: string
           timestamp?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           color?: string | null
@@ -75,7 +78,7 @@ export type Database = {
           sub_journal_id?: string
           text?: string
           timestamp?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -118,24 +121,27 @@ export type Database = {
           id: string
           journal_id: string
           name: string
+          type: string | null
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           journal_id: string
           name: string
+          type?: string | null
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           journal_id?: string
           name?: string
+          type?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
