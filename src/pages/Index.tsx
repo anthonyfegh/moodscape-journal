@@ -738,36 +738,37 @@ const IndexContent = () => {
                                           {reflection.user_reply}
                                         </p>
                                       )}
-                                      {/* Reply input */}
-                                      {replyingToReflection?.momentId === entry.id && 
-                                       replyingToReflection?.reflectionId === reflection.id && 
-                                       !reflection.user_reply && (
-                                        <div className="pl-4">
-                                          <input
-                                            ref={replyInputRef}
-                                            type="text"
-                                            value={replyText}
-                                            onChange={(e) => setReplyText(e.target.value)}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                handleReplySubmit(entry.id, reflection.id);
-                                              } else if (e.key === 'Escape') {
-                                                setReplyingToReflection(null);
-                                                setReplyText("");
-                                              }
-                                            }}
-                                            onBlur={() => {
-                                              if (!replyText.trim()) {
-                                                setReplyingToReflection(null);
-                                              }
-                                            }}
-                                            placeholder="Reply to continue the conversation..."
-                                            className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
-                                          />
-                                          <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
-                                        </div>
-                                      )}
+                                       {/* Reply input */}
+                                       {replyingToReflection?.momentId === entry.id && 
+                                        replyingToReflection?.reflectionId === reflection.id && 
+                                        !reflection.user_reply && (
+                                         <div className="pl-4" onClick={(e) => e.stopPropagation()}>
+                                           <input
+                                             ref={replyInputRef}
+                                             type="text"
+                                             value={replyText}
+                                             onChange={(e) => setReplyText(e.target.value)}
+                                             onClick={(e) => e.stopPropagation()}
+                                             onKeyDown={(e) => {
+                                               if (e.key === 'Enter') {
+                                                 e.preventDefault();
+                                                 handleReplySubmit(entry.id, reflection.id);
+                                               } else if (e.key === 'Escape') {
+                                                 setReplyingToReflection(null);
+                                                 setReplyText("");
+                                               }
+                                             }}
+                                             onBlur={() => {
+                                               if (!replyText.trim()) {
+                                                 setReplyingToReflection(null);
+                                               }
+                                             }}
+                                             placeholder="Reply to continue the conversation..."
+                                             className="w-full px-3 py-2 bg-background/50 border border-border/20 rounded-md text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-muted-foreground/30 transition-colors"
+                                           />
+                                           <p className="text-xs text-muted-foreground/50 mt-1">Press Enter to send, Esc to cancel</p>
+                                         </div>
+                                       )}
                                     </div>
                                   ))}
                                 </div>
