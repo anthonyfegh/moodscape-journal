@@ -754,18 +754,19 @@ const IndexContent = () => {
 
                               {/* AI Reflections - soft, handwritten style */}
                               {entry.ai_reflections && entry.ai_reflections.length > 0 && (
-                                <div className="pl-6 border-l-2 border-muted-foreground/10 space-y-3">
-                                  {entry.ai_reflections.map((reflection, index) => (
-                                    <Accordion type="single" collapsible key={reflection.id} defaultValue={reflection.id}>
-                                      <AccordionItem value={reflection.id} className="border-none">
-                                        <AccordionTrigger 
-                                          className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          AI Reflection
-                                        </AccordionTrigger>
-                                        <AccordionContent>
+                                <Accordion type="single" collapsible defaultValue="reflections" className="pl-6 border-l-2 border-muted-foreground/10">
+                                  <AccordionItem value="reflections" className="border-none">
+                                    <AccordionTrigger 
+                                      className="text-sm italic text-muted-foreground/60 hover:text-muted-foreground/80 py-2"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      AI Conversation
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                      <div className="space-y-3">
+                                        {entry.ai_reflections.map((reflection, index) => (
                                           <div 
+                                            key={reflection.id}
                                             className="space-y-2"
                                             onMouseEnter={() => !reflection.user_reply && setHoveredReflection({ momentId: entry.id, reflectionId: reflection.id })}
                                             onMouseLeave={() => setHoveredReflection(null)}
@@ -808,11 +809,11 @@ const IndexContent = () => {
                                                </div>
                                              )}
                                           </div>
-                                        </AccordionContent>
-                                      </AccordionItem>
-                                    </Accordion>
-                                  ))}
-                                </div>
+                                        ))}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
                               )}
                             </div>
                           )}
