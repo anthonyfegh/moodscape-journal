@@ -16,47 +16,53 @@ export const DailyLogWeekly = ({ journalId, onLogToday }: DailyLogWeeklyProps) =
   const [journalName, setJournalName] = useState("");
 
   useEffect(() => {
-    // Get journal name
-    const journal = journalStorage.getJournal(journalId);
-    if (journal) {
-      setJournalName(journal.name);
-    }
+    const loadWeeklyData = async () => {
+      // Get journal name
+      const journal = await journalStorage.getJournal(journalId);
+      if (journal) {
+        setJournalName(journal.name);
+      }
 
-    // Get current week (Monday to Sunday)
-    const today = new Date();
-    const currentDay = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+      // Get current week (Monday to Sunday)
+      const today = new Date();
+      const currentDay = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
 
-    const week: Array<{ date: Date; logged: boolean }> = [];
-    
-    // Get all moments for this journal
-    const subJournals = journalStorage.getSubJournals(journalId);
-    const allMoments = subJournals.flatMap(sj => journalStorage.getMoments(sj.id));
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
+      const week: Array<{ date: Date; logged: boolean }> = [];
       
-      // Check if there's a log for this date
-      const dateStr = date.toISOString().split('T')[0];
-      const hasLog = allMoments.some(moment => {
+      // Get all moments for this journal
+      const subJournals = await journalStorage.getSubJournals(journalId);
+      const allMomentsPromises = subJournals.map(sj => journalStorage.getMoments(sj.id));
+      const allMomentsArrays = await Promise.all(allMomentsPromises);
+      const allMoments = allMomentsArrays.flat();
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        
+        // Check if there's a log for this date
+        const dateStr = date.toISOString().split('T')[0];
+        const hasLog = allMoments.some(moment => {
+          const momentDate = new Date(moment.timestamp).toISOString().split('T')[0];
+          return momentDate === dateStr;
+        });
+
+        week.push({ date, logged: hasLog });
+      }
+
+      setWeekDays(week);
+
+      // Check if today is logged
+      const todayStr = today.toISOString().split('T')[0];
+      const isTodayLogged = allMoments.some(moment => {
         const momentDate = new Date(moment.timestamp).toISOString().split('T')[0];
-        return momentDate === dateStr;
+        return momentDate === todayStr;
       });
+      setTodayLogged(isTodayLogged);
+    };
 
-      week.push({ date, logged: hasLog });
-    }
-
-    setWeekDays(week);
-
-    // Check if today is logged
-    const todayStr = today.toISOString().split('T')[0];
-    const isTodayLogged = allMoments.some(moment => {
-      const momentDate = new Date(moment.timestamp).toISOString().split('T')[0];
-      return momentDate === todayStr;
-    });
-    setTodayLogged(isTodayLogged);
+    loadWeeklyData();
   }, [journalId]);
 
   const getDayName = (date: Date) => {

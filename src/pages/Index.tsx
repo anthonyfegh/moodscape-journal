@@ -57,33 +57,37 @@ const IndexContent = () => {
       return;
     }
 
-    const journal = journalStorage.getJournal(journalId);
-    if (!journal) {
-      navigate("/");
-      return;
-    }
+    const loadJournal = async () => {
+      const journal = await journalStorage.getJournal(journalId);
+      if (!journal) {
+        navigate("/");
+        return;
+      }
 
-    setJournalName(journal.name);
-    setJournalType(journal.type);
+      setJournalName(journal.name);
+      setJournalType(journal.type);
 
-    // Get or create default sub-journal
-    let subJournals = journalStorage.getSubJournals(journalId);
-    if (subJournals.length === 0) {
-      journalStorage.createSubJournal(journalId, "Main");
-      subJournals = journalStorage.getSubJournals(journalId);
-    }
+      // Get or create default sub-journal
+      let subJournals = await journalStorage.getSubJournals(journalId);
+      if (subJournals.length === 0) {
+        await journalStorage.createSubJournal(journalId, "Main");
+        subJournals = await journalStorage.getSubJournals(journalId);
+      }
 
-    // Load moments from first sub-journal
-    const defaultSubJournal = subJournals[0];
-    const moments = journalStorage.getMoments(defaultSubJournal.id);
-    const entries: LogEntry[] = moments.map((m) => ({
-      id: m.id,
-      text: m.text,
-      emotion: m.emotion,
-      color: m.color,
-      timestamp: new Date(m.timestamp),
-    }));
-    setLogEntries(entries);
+      // Load moments from first sub-journal
+      const defaultSubJournal = subJournals[0];
+      const moments = await journalStorage.getMoments(defaultSubJournal.id);
+      const entries: LogEntry[] = moments.map((m) => ({
+        id: m.id,
+        text: m.text,
+        emotion: m.emotion,
+        color: m.color,
+        timestamp: new Date(m.timestamp),
+      }));
+      setLogEntries(entries);
+    };
+
+    loadJournal();
   }, [journalId, navigate]);
 
   // Hide thought bubble after inactivity
@@ -231,7 +235,7 @@ const IndexContent = () => {
   };
 
   // Handle Enter key to save log entry
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 
@@ -241,12 +245,12 @@ const IndexContent = () => {
       }
 
       // Get default sub-journal
-      const subJournals = journalStorage.getSubJournals(journalId);
+      const subJournals = await journalStorage.getSubJournals(journalId);
       if (subJournals.length === 0) return;
       const defaultSubJournal = subJournals[0];
 
-      // Save to localStorage
-      const savedMoment = journalStorage.createMoment(
+      // Save to database
+      const savedMoment = await journalStorage.createMoment(
         defaultSubJournal.id,
         contentToSave,
         personaState,
@@ -254,7 +258,7 @@ const IndexContent = () => {
       );
 
       // Update journal's last mood color
-      journalStorage.updateJournal(journalId, { lastMoodColor: moodColor });
+      await journalStorage.updateJournal(journalId, { lastMoodColor: moodColor });
 
       const newEntry: LogEntry = {
         id: savedMoment.id,
