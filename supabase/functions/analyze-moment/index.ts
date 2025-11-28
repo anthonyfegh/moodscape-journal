@@ -76,12 +76,25 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
     const data = await response.json();
     const content = data.choices[0].message.content;
     
-    // Parse the JSON response
+    // Parse the JSON response - strip markdown code blocks if present
     let analysis;
     try {
-      analysis = JSON.parse(content);
+      // Remove markdown code block markers if present
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      analysis = JSON.parse(cleanContent);
+      
+      // Validate the structure
+      if (!analysis.emotion || !analysis.color) {
+        throw new Error('Invalid response structure');
+      }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
+      console.error('Failed to parse AI response:', content, parseError);
       // Fallback to default values
       analysis = { emotion: 'contemplative', color: '#fbbf24' };
     }
