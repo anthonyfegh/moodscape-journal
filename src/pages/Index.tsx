@@ -48,7 +48,7 @@ const IndexContent = () => {
 
     const timer = setTimeout(() => {
       setIsThinking(false);
-    }, 5000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [isThinking, text]);
@@ -193,11 +193,11 @@ const IndexContent = () => {
       setMicroComments([]);
       setMemoryBubble(null);
       setIsThinking(false);
-      
+
       // Trigger emotional ripple
       setRippleActive(true);
       setTimeout(() => setRippleActive(false), 2000);
-      
+
       setMoodColor("#fbbf24");
       setPersonaState("neutral");
       setIsTyping(false);
@@ -259,7 +259,7 @@ const IndexContent = () => {
     if (moment) {
       setEditingMomentId(momentId);
       setEditingText(moment.text);
-      
+
       // If clicked from sidebar, close sidebar and focus at end of text
       if (fromSidebar) {
         setOpen(false);
@@ -306,126 +306,121 @@ const IndexContent = () => {
   }, [text]);
 
   return (
-      <div className="min-h-screen flex w-full relative">
-        <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
+    <div className="min-h-screen flex w-full relative">
+      <LivingBackground moodColor={hoveredMoodColor || moodColor} isTyping={isTyping} rippleActive={rippleActive} />
 
-        <div className="flex-1 min-h-screen relative z-10">
-          <PersonaWithThoughts
-            isThinking={isThinking}
-            recentWords={recentWords}
-            moodColor={moodColor}
-            personaState={personaState}
-            logEntries={logEntries}
-            isTyping={isTyping}
-          />
+      <div className="flex-1 min-h-screen relative z-10">
+        <PersonaWithThoughts
+          isThinking={isThinking}
+          recentWords={recentWords}
+          moodColor={moodColor}
+          personaState={personaState}
+          logEntries={logEntries}
+          isTyping={isTyping}
+        />
 
-          {/* Toggle Sidebar Button */}
-          <div className="fixed top-4 right-4 z-50">
-            <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
-              <Menu className="h-4 w-4" />
-            </SidebarTrigger>
-          </div>
+        {/* Toggle Sidebar Button */}
+        <div className="fixed top-4 right-4 z-50">
+          <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
+            <Menu className="h-4 w-4" />
+          </SidebarTrigger>
+        </div>
 
-          <div className="min-h-screen flex flex-col items-center p-8">
-            <div className="max-w-3xl w-full">
-              <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">Your Journal</h1>
-              <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
+        <div className="min-h-screen flex flex-col items-center p-8">
+          <div className="max-w-3xl w-full">
+            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">Your Journal</h1>
+            <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
 
-              {/* Continuous Writing Surface - like a sheet of paper */}
-              <div
-                className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
-                  lineHeight: "32px",
-                }}
-              >
-                <EmotionalRipple isActive={rippleActive} moodColor={moodColor} />
-                <div className="space-y-6">
-                  <AnimatePresence>
-                    {logEntries.map((entry) => (
-                      <motion.div
-                        key={entry.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
+            {/* Continuous Writing Surface - like a sheet of paper */}
+            <div
+              className="bg-background/60 backdrop-blur-md rounded-lg p-8 shadow-md border border-border/10 relative"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(transparent, transparent 31px, hsl(var(--border) / 0.18) 31px, hsl(var(--border) / 0.18) 32px)",
+                lineHeight: "32px",
+              }}
+            >
+              <EmotionalRipple isActive={rippleActive} moodColor={moodColor} />
+              <div className="space-y-6">
+                <AnimatePresence>
+                  {logEntries.map((entry) => (
+                    <motion.div
+                      key={entry.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <MomentSpotlight
+                        moodColor={entry.color}
+                        onMomentClick={() => {
+                          if (editingMomentId !== entry.id) {
+                            handleEditMoment(entry.id);
+                          }
+                        }}
+                        onHoverChange={(isHovering) => {
+                          setHoveredMoodColor(isHovering ? entry.color : null);
+                        }}
                       >
-                        <MomentSpotlight
-                          moodColor={entry.color}
-                          onMomentClick={() => {
-                            if (editingMomentId !== entry.id) {
-                              handleEditMoment(entry.id);
-                            }
-                          }}
-                          onHoverChange={(isHovering) => {
-                            setHoveredMoodColor(isHovering ? entry.color : null);
-                          }}
-                        >
-                          {editingMomentId === entry.id ? (
-                            <textarea
-                              ref={editTextareaRef}
-                              value={editingText}
-                              onChange={(e) => setEditingText(e.target.value)}
-                              onBlur={() => handleSaveEdit(entry.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleSaveEdit(entry.id);
-                                }
-                              }}
-                              className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
-                              rows={4}
-                              autoFocus
+                        {editingMomentId === entry.id ? (
+                          <textarea
+                            ref={editTextareaRef}
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onBlur={() => handleSaveEdit(entry.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSaveEdit(entry.id);
+                              }
+                            }}
+                            className="w-full p-2 bg-background/50 border border-border/20 rounded outline-none resize-none text-foreground leading-relaxed"
+                            rows={4}
+                            autoFocus
+                            style={{ lineHeight: "32px" }}
+                          />
+                        ) : (
+                          <div className="relative">
+                            <p
+                              className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
                               style={{ lineHeight: "32px" }}
-                            />
-                          ) : (
-                            <div className="relative">
-                              <p
-                                className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-lg"
-                                style={{ lineHeight: "32px" }}
-                              >
-                                {entry.text}
-                              </p>
-                            </div>
-                          )}
-                        </MomentSpotlight>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                            >
+                              {entry.text}
+                            </p>
+                          </div>
+                        )}
+                      </MomentSpotlight>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
-                  {/* Live Input - blends into the same page */}
-                  <div className="relative">
-                    <HeartbeatHighlights
-                      text={text}
-                      wordFrequency={wordFrequency}
-                      moodColor={moodColor}
-                      threshold={2}
-                    />
-                    <textarea
-                      ref={textareaRef}
-                      value={text}
-                      onChange={handleTextChange}
-                      onKeyDown={handleKeyDown}
-                      onSelect={updateCaretPosition}
-                      onClick={updateCaretPosition}
-                      placeholder=""
-                      className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
-                      rows={6}
-                      style={{ lineHeight: "32px" }}
-                    />
-                    <EmotionalInkTrails isTyping={isTyping} moodColor={moodColor} caretPosition={caretPosition} />
-                    <MicroComments comments={microComments} isTyping={isTyping} />
-                    <MemoryBubbles memory={memoryBubble} />
-                  </div>
+                {/* Live Input - blends into the same page */}
+                <div className="relative">
+                  <HeartbeatHighlights text={text} wordFrequency={wordFrequency} moodColor={moodColor} threshold={2} />
+                  <textarea
+                    ref={textareaRef}
+                    value={text}
+                    onChange={handleTextChange}
+                    onKeyDown={handleKeyDown}
+                    onSelect={updateCaretPosition}
+                    onClick={updateCaretPosition}
+                    placeholder=""
+                    className="relative w-full p-2 bg-transparent border-none outline-none resize-none text-lg leading-relaxed text-transparent caret-foreground placeholder:text-muted-foreground/40"
+                    rows={6}
+                    style={{ lineHeight: "32px" }}
+                  />
+                  <EmotionalInkTrails isTyping={isTyping} moodColor={moodColor} caretPosition={caretPosition} />
+                  <MicroComments comments={microComments} isTyping={isTyping} />
+                  <MemoryBubbles memory={memoryBubble} />
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
       </div>
+
+      <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
+    </div>
   );
 };
 
