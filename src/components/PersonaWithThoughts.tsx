@@ -26,8 +26,17 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
 
   useEffect(() => {
     if (recentWords.length > 0) {
-      const lastWord = recentWords[recentWords.length - 1];
-      setDisplayWords((prev) => [...prev.slice(-10), lastWord]);
+      setDisplayWords((prev) => {
+        const lastWord = recentWords[recentWords.length - 1];
+        
+        // Only add if it's a new unique word
+        if (!prev.includes(lastWord)) {
+          // Keep last 10 unique words
+          return [...prev.slice(-9), lastWord];
+        }
+        
+        return prev;
+      });
     }
   }, [recentWords]);
 
