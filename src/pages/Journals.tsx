@@ -140,8 +140,8 @@ const Journals = () => {
             </div>
 
             <div className="space-y-8">
-              {/* Weekly tracker for all journals */}
-              {journals.length > 0 && (
+              {/* Weekly tracker for daily logs only */}
+              {journalsByType["daily"]?.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
@@ -150,15 +150,10 @@ const Journals = () => {
                     </div>
                     <div className="flex-1 h-px bg-border/30"></div>
                   </div>
-                  <div className="grid gap-3">
-                    {journals.map((journal) => (
-                      <DailyLogWeekly
-                        key={journal.id}
-                        journalId={journal.id}
-                        onLogToday={() => navigate(`/journal/${journal.id}`)}
-                      />
-                    ))}
-                  </div>
+                  <DailyLogWeekly
+                    journalId={journalsByType["daily"][0].id}
+                    onLogToday={() => navigate(`/journal/${journalsByType["daily"][0].id}`)}
+                  />
                 </div>
               )}
 
