@@ -87,16 +87,16 @@ export const LivingBackground = ({
         style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
-          x: isTyping ? ["5vw", "45vw", "5vw"] : "5vw",
-          y: isTyping ? ["5vh", "45vh", "5vh"] : "5vh",
-          scale: isTyping ? [1, 1.08, 1] : 1,
-          rotate: [25, 35, 25],
+          x: isTyping ? ["5vw", "70vw", "5vw"] : "5vw",
+          y: isTyping ? ["5vh", "65vh", "5vh"] : "5vh",
+          scale: isTyping ? [1, 1.15, 1] : 1,
+          rotate: [15, 45, 15],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? mainCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           y: { duration: isTyping ? mainCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-          scale: { duration: 2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          scale: { duration: 3, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           rotate: { duration: mainCometDuration, repeat: Infinity, ease: "easeInOut" },
           background: { duration: 1.5, ease: "easeInOut" },
         }}
@@ -108,16 +108,16 @@ export const LivingBackground = ({
         style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
         initial={false}
         animate={{
-          x: isTyping ? ["75vw", "45vw", "75vw"] : "75vw",
-          y: isTyping ? ["5vh", "45vh", "5vh"] : "5vh",
-          scale: isTyping ? [1, 1.06, 1] : 1,
-          rotate: [-20, -30, -20],
+          x: isTyping ? ["75vw", "15vw", "75vw"] : "75vw",
+          y: isTyping ? ["5vh", "70vh", "5vh"] : "5vh",
+          scale: isTyping ? [1, 1.12, 1] : 1,
+          rotate: [-15, -50, -15],
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? secondaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           y: { duration: isTyping ? secondaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-          scale: { duration: 1.8, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          scale: { duration: 2.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           rotate: { duration: secondaryCometDuration, repeat: Infinity, ease: "easeInOut" },
           background: { duration: 1.5, ease: "easeInOut" },
         }}
@@ -129,19 +129,19 @@ export const LivingBackground = ({
         style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
         initial={false}
         animate={{
-          x: isTyping ? ["5vw", "45vw", "5vw"] : "5vw",
-          y: isTyping ? ["75vh", "45vh", "75vh"] : "75vh",
-          scale: isTyping ? [1, 1.04, 1] : 1,
-          rotate: [0, 10, 0],
+          x: isTyping ? ["5vw", "75vw", "5vw"] : "5vw",
+          y: isTyping ? ["75vh", "10vh", "75vh"] : "75vh",
+          scale: isTyping ? [1, 1.1, 1] : 1,
+          rotate: [0, 35, 0],
           opacity: isTyping ? [0.4, 0.7, 0.4] : 0.4,
           background: `radial-gradient(ellipse 45% 55% at 35% 50%, ${cometColors.core} 0%, ${cometColors.middle} 35%, ${cometColors.outer} 65%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? tertiaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           y: { duration: isTyping ? tertiaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-          opacity: { duration: 3, repeat: isTyping ? Infinity : 0 },
-          rotate: { duration: tertiaryCometDuration, repeat: Infinity },
-          scale: { duration: 2.2, repeat: isTyping ? Infinity : 0 },
+          opacity: { duration: 3.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          rotate: { duration: tertiaryCometDuration, repeat: Infinity, ease: "easeInOut" },
+          scale: { duration: 2.8, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
         }}
       />
 
@@ -151,19 +151,19 @@ export const LivingBackground = ({
         style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
-          x: isTyping ? ["75vw", "45vw", "75vw"] : "75vw",
-          y: isTyping ? ["75vh", "45vh", "75vh"] : "75vh",
-          scale: isTyping ? [1, 1.03, 1] : 1,
-          rotate: [10, -5, 10],
+          x: isTyping ? ["75vw", "10vw", "75vw"] : "75vw",
+          y: isTyping ? ["75vh", "15vh", "75vh"] : "75vh",
+          scale: isTyping ? [1, 1.08, 1] : 1,
+          rotate: [10, -40, 10],
           opacity: isTyping ? [0.3, 0.6, 0.3] : 0.3,
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
         }}
         transition={{
           x: { duration: isTyping ? quaternaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
           y: { duration: isTyping ? quaternaryCometDuration : 1.5, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
-          opacity: { duration: 3.5, repeat: isTyping ? Infinity : 0 },
-          rotate: { duration: quaternaryCometDuration, repeat: Infinity },
-          scale: { duration: 2.5, repeat: isTyping ? Infinity : 0 },
+          opacity: { duration: 4, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
+          rotate: { duration: quaternaryCometDuration, repeat: Infinity, ease: "easeInOut" },
+          scale: { duration: 3.2, repeat: isTyping ? Infinity : 0, ease: "easeInOut" },
         }}
       />
     </div>
