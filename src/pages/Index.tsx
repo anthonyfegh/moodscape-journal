@@ -70,10 +70,12 @@ const IndexContent = () => {
   const [selectedMoment, setSelectedMoment] = useState<LogEntry | null>(null);
   const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
   const [hoveredReflection, setHoveredReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
+  const [pinnedReflection, setPinnedReflection] = useState<{ momentId: string; reflectionId: string } | null>(null);
   const [replyText, setReplyText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const replyInputRef = useRef<HTMLInputElement>(null);
+  const replyContainerRef = useRef<HTMLDivElement>(null);
   const [guidance, setGuidance] = useState<string>("");
   const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
   const [highlightedMomentId, setHighlightedMomentId] = useState<string | null>(null);
@@ -469,6 +471,19 @@ const IndexContent = () => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isSelectingMoment]);
 
+  // Handle click outside to unpin reply input
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pinnedReflection && replyContainerRef.current && !replyContainerRef.current.contains(e.target as Node)) {
+        setPinnedReflection(null);
+        setReplyText("");
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [pinnedReflection]);
+
   const handleMomentSelect = async (moment: LogEntry) => {
     setSelectedMoment(moment);
     setIsGeneratingReflection(true);
@@ -638,6 +653,7 @@ const IndexContent = () => {
       }));
 
       setHoveredReflection(null);
+      setPinnedReflection(null);
       setReplyText("");
     } catch (error) {
       console.error('Error submitting reply:', error);
@@ -954,22 +970,30 @@ const IndexContent = () => {
                                                 {reflection.user_reply}
                                               </p>
                                             )}
-                                            {/* Reply input - appears on hover */}
-                                            {hoveredReflection?.momentId === entry.id && 
-                                             hoveredReflection?.reflectionId === reflection.id && 
+                                            {/* Reply input - appears on hover or when pinned */}
+                                            {((hoveredReflection?.momentId === entry.id && hoveredReflection?.reflectionId === reflection.id) ||
+                                              (pinnedReflection?.momentId === entry.id && pinnedReflection?.reflectionId === reflection.id)) && 
                                              !reflection.user_reply && (
-                                               <div className="pl-4 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                                               <div 
+                                                 ref={replyContainerRef}
+                                                 className="pl-4 animate-fade-in" 
+                                                 onClick={(e) => e.stopPropagation()}
+                                               >
                                                  <input
                                                    ref={replyInputRef}
                                                    type="text"
                                                    value={replyText}
                                                    onChange={(e) => setReplyText(e.target.value)}
-                                                   onClick={(e) => e.stopPropagation()}
+                                                   onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     setPinnedReflection({ momentId: entry.id, reflectionId: reflection.id });
+                                                   }}
                                                    onKeyDown={(e) => {
                                                      if (e.key === 'Enter') {
                                                        e.preventDefault();
                                                        handleReplySubmit(entry.id, reflection.id);
                                                      } else if (e.key === 'Escape') {
+                                                       setPinnedReflection(null);
                                                        setHoveredReflection(null);
                                                        setReplyText("");
                                                      }
