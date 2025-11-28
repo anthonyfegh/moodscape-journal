@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
 import { PersonaWithThoughts } from "@/components/PersonaWithThoughts";
@@ -9,8 +10,11 @@ import { HeartbeatHighlights } from "@/components/HeartbeatHighlights";
 import { MomentSpotlight } from "@/components/MomentSpotlight";
 import { EmotionalRipple } from "@/components/EmotionalRipple";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Menu } from "lucide-react";
+import { ManageJournalsSidebar } from "@/components/ManageJournalsSidebar";
+import { Menu, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { journalStorage } from "@/lib/journalStorage";
+import { Button } from "@/components/ui/button";
 
 interface LogEntry {
   id: string;
@@ -21,8 +25,11 @@ interface LogEntry {
 }
 
 const IndexContent = () => {
+  const { journalId } = useParams();
+  const navigate = useNavigate();
   const { setOpen } = useSidebar();
   const [text, setText] = useState("");
+  const [journalName, setJournalName] = useState("");
   const [moodColor, setMoodColor] = useState("#fbbf24");
   const [microComments, setMicroComments] = useState<string[]>([]);
   const [memoryBubble, setMemoryBubble] = useState<string | null>(null);
@@ -41,6 +48,41 @@ const IndexContent = () => {
   const [rippleActive, setRippleActive] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Load journal and create default sub-journal if needed
+  useEffect(() => {
+    if (!journalId) {
+      navigate("/");
+      return;
+    }
+
+    const journal = journalStorage.getJournal(journalId);
+    if (!journal) {
+      navigate("/");
+      return;
+    }
+
+    setJournalName(journal.name);
+
+    // Get or create default sub-journal
+    let subJournals = journalStorage.getSubJournals(journalId);
+    if (subJournals.length === 0) {
+      journalStorage.createSubJournal(journalId, "Main");
+      subJournals = journalStorage.getSubJournals(journalId);
+    }
+
+    // Load moments from first sub-journal
+    const defaultSubJournal = subJournals[0];
+    const moments = journalStorage.getMoments(defaultSubJournal.id);
+    const entries: LogEntry[] = moments.map((m) => ({
+      id: m.id,
+      text: m.text,
+      emotion: m.emotion,
+      color: m.color,
+      timestamp: new Date(m.timestamp),
+    }));
+    setLogEntries(entries);
+  }, [journalId, navigate]);
 
   // Hide thought bubble after inactivity
   useEffect(() => {
@@ -176,12 +218,28 @@ const IndexContent = () => {
       e.preventDefault();
 
       const contentToSave = text.trim();
-      if (contentToSave.length === 0) {
+      if (contentToSave.length === 0 || !journalId) {
         return;
       }
 
+      // Get default sub-journal
+      const subJournals = journalStorage.getSubJournals(journalId);
+      if (subJournals.length === 0) return;
+      const defaultSubJournal = subJournals[0];
+
+      // Save to localStorage
+      const savedMoment = journalStorage.createMoment(
+        defaultSubJournal.id,
+        contentToSave,
+        personaState,
+        moodColor
+      );
+
+      // Update journal's last mood color
+      journalStorage.updateJournal(journalId, { lastMoodColor: moodColor });
+
       const newEntry: LogEntry = {
-        id: Date.now().toString(),
+        id: savedMoment.id,
         text: contentToSave,
         emotion: personaState,
         color: moodColor,
@@ -277,6 +335,7 @@ const IndexContent = () => {
 
   // Handle saving edited moment
   const handleSaveEdit = (momentId: string) => {
+    journalStorage.updateMoment(momentId, editingText);
     setLogEntries((prev) => prev.map((entry) => (entry.id === momentId ? { ...entry, text: editingText } : entry)));
     setEditingMomentId(null);
     setEditingText("");
@@ -319,16 +378,25 @@ const IndexContent = () => {
           isTyping={isTyping}
         />
 
-        {/* Toggle Sidebar Button */}
-        <div className="fixed top-4 right-4 z-50">
+        {/* Header with back button and sidebar toggle */}
+        <div className="fixed top-4 left-4 right-4 z-50 flex items-center justify-between">
+          <Button
+            onClick={() => navigate("/")}
+            variant="ghost"
+            size="sm"
+            className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            All Journals
+          </Button>
           <SidebarTrigger className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg">
             <Menu className="h-4 w-4" />
           </SidebarTrigger>
         </div>
 
-        <div className="min-h-screen flex flex-col items-center p-8">
+        <div className="min-h-screen flex flex-col items-center p-8 pt-20">
           <div className="max-w-3xl w-full">
-            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">Your Journal</h1>
+            <h1 className="text-3xl font-serif font-bold mb-2 text-foreground">{journalName}</h1>
             <p className="text-muted-foreground mb-6">Write freely, and watch your emotions come alive</p>
 
             {/* Continuous Writing Surface - like a sheet of paper */}
@@ -419,6 +487,7 @@ const IndexContent = () => {
         </div>
       </div>
 
+      <ManageJournalsSidebar />
       <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
     </div>
   );
