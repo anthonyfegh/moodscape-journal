@@ -105,7 +105,7 @@ export const LivingBackground = ({
       {/* Comet 2 — Top-right corner */}
       <motion.div
         className="absolute"
-        style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
+        style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
           x: isTyping ? ["75vw", "15vw", "75vw"] : "75vw",
@@ -126,7 +126,7 @@ export const LivingBackground = ({
       {/* Comet 3 — Bottom-left corner */}
       <motion.div
         className="absolute"
-        style={{ width: "500px", height: "300px", filter: "blur(45px)" }}
+        style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
           x: isTyping ? ["5vw", "75vw", "5vw"] : "5vw",
