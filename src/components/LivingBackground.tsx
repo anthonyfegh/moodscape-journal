@@ -87,8 +87,8 @@ export const LivingBackground = ({
         style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
         initial={false}
         animate={{
-          x: isTyping ? ["5vw", "70vw", "5vw"] : ["5vw", "6vw", "5vw", "4vw", "5vw"],
-          y: isTyping ? ["5vh", "65vh", "5vh"] : ["5vh", "5.5vh", "6vh", "5.5vh", "5vh"],
+          x: isTyping ? ["5vw", "70vw", "5vw"] : "5vw",
+          y: isTyping ? ["5vh", "65vh", "5vh"] : "5vh",
           scale: isTyping ? [1, 1.15, 1] : 1,
           rotate: [15, 45, 15],
           background: `radial-gradient(ellipse 40% 60% at 30% 50%, ${cometColors.core} 0%, ${cometColors.middle} 40%, ${cometColors.outer} 70%, transparent 100%)`,
