@@ -82,6 +82,7 @@ export const LivingBackground = ({
       />
 
       {/* Comet 1 — Top-left corner */}
+
       <motion.div
         className="absolute"
         style={{ width: "600px", height: "350px", filter: "blur(35px)" }}
