@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MicroComments } from "@/components/MicroComments";
 import { MemoryBubbles } from "@/components/MemoryBubbles";
@@ -79,6 +79,11 @@ const IndexContent = () => {
   const [beingState, setBeingState] = useState<BeingState>(createInitialState());
   const beingStateTimeoutRef = useRef<NodeJS.Timeout>();
   const [allMoments, setAllMoments] = useState<Array<{ text: string; emotion: string; color: string; timestamp: string }>>([]);
+  const [weeklyJournalFrequency, setWeeklyJournalFrequency] = useState(0);
+  const [typingSpeed, setTypingSpeed] = useState(0); // chars per second
+  const lastTextLengthRef = useRef(0);
+  const typingSpeedIntervalRef = useRef<NodeJS.Timeout>();
+  const charCountRef = useRef(0);
 
   // Analyze being state based on journal content
   const analyzeBeingState = useCallback(async (currentText: string) => {
@@ -94,6 +99,7 @@ const IndexContent = () => {
           })),
           currentText,
           journalType,
+          weeklyJournalFrequency,
         },
       });
 
@@ -103,7 +109,74 @@ const IndexContent = () => {
     } catch (err) {
       console.error("Error analyzing being state:", err);
     }
-  }, [allMoments, logEntries, journalType]);
+  }, [allMoments, logEntries, journalType, weeklyJournalFrequency]);
+
+  // Calculate weekly journal frequency
+  useEffect(() => {
+    const calculateWeeklyFrequency = async () => {
+      try {
+        const journals = await journalStorage.getJournals();
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const daysWithEntries = new Set<string>();
+        
+        for (const journal of journals) {
+          const subJournals = await journalStorage.getSubJournals(journal.id);
+          for (const subJournal of subJournals) {
+            const moments = await journalStorage.getMoments(subJournal.id);
+            moments.forEach(m => {
+              const momentDate = new Date(m.timestamp);
+              if (momentDate >= oneWeekAgo) {
+                daysWithEntries.add(momentDate.toDateString());
+              }
+            });
+          }
+        }
+        
+        setWeeklyJournalFrequency(daysWithEntries.size);
+      } catch (err) {
+        console.error("Error calculating weekly frequency:", err);
+      }
+    };
+    
+    calculateWeeklyFrequency();
+  }, [logEntries.length]); // Recalculate when entries change
+
+  // Track typing speed
+  useEffect(() => {
+    // Reset char count every second and calculate speed
+    typingSpeedIntervalRef.current = setInterval(() => {
+      setTypingSpeed(charCountRef.current);
+      charCountRef.current = 0;
+    }, 1000);
+    
+    return () => {
+      if (typingSpeedIntervalRef.current) {
+        clearInterval(typingSpeedIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Blend typing speed into entropy for immediate responsiveness
+  const liveBeingState = useMemo(() => {
+    if (!beingState) return beingState;
+    
+    // Typing speed affects entropy: faster typing = higher entropy (more chaotic energy)
+    // Normal typing: 2-5 chars/sec, fast: 5-10, very fast: 10+
+    const typingEntropyBoost = Math.min(typingSpeed / 15, 0.4); // Max 0.4 boost from typing
+    const newEntropy = Math.min(beingState.H + typingEntropyBoost, 1);
+    
+    // Also boost arousal slightly with typing speed
+    const typingArousalBoost = Math.min(typingSpeed / 20, 0.2);
+    const newArousal = Math.min(beingState.A + typingArousalBoost, 1);
+    
+    return {
+      ...beingState,
+      H: newEntropy,
+      A: newArousal,
+    };
+  }, [beingState, typingSpeed]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {
@@ -267,6 +340,11 @@ const IndexContent = () => {
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
+    
+    // Track characters typed for speed calculation
+    const charsTyped = Math.abs(newText.length - lastTextLengthRef.current);
+    charCountRef.current += charsTyped;
+    lastTextLengthRef.current = newText.length;
 
     // Set typing state and clear guidance
     setIsTyping(true);
@@ -789,7 +867,7 @@ const IndexContent = () => {
           isTyping={isTyping}
           onClick={handleAvatarClick}
           guidance={guidance}
-          beingState={beingState}
+          beingState={liveBeingState}
         />
 
         {/* Header with back button and sidebar toggle */}
