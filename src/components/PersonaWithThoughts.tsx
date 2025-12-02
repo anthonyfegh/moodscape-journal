@@ -36,6 +36,20 @@ export const PersonaWithThoughts = ({
 }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [showGuidance, setShowGuidance] = useState(false);
+
+  // Auto-hide guidance after 8 seconds
+  useEffect(() => {
+    if (guidance) {
+      setShowGuidance(true);
+      const timer = setTimeout(() => {
+        setShowGuidance(false);
+      }, 8000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowGuidance(false);
+    }
+  }, [guidance]);
 
   // Derive render state from AI being state or fallback to basic calculation
   const renderState: RenderState = useMemo(() => {
@@ -114,7 +128,7 @@ export const PersonaWithThoughts = ({
     <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end">
       {/* Guidance Bubble */}
       <AnimatePresence>
-        {guidance && !isTyping && (
+        {showGuidance && guidance && !isTyping && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
