@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { BeingCanvas } from '@/components/being/BeingCanvas';
 import { 
   BeingState, 
@@ -34,6 +33,11 @@ export default function BeingDemo() {
   const [beingState, setBeingState] = useState<BeingState>(createInitialState());
   const [autoMode, setAutoMode] = useState(false);
 
+  // Direct state update
+  const updateState = (key: keyof BeingState, value: number) => {
+    setBeingState(prev => ({ ...prev, [key]: value }));
+  };
+
   // Apply experience to the being
   const applyExperience = (experience: ExperienceVector) => {
     setBeingState(prev => updateBeingState(prev, experience));
@@ -66,7 +70,7 @@ export default function BeingDemo() {
     {
       name: "Discovery",
       icon: Sparkles,
-      experience: { novelty: 0.8, mood: 0.6, curiosity: 0.7 },
+      experience: { novelty: 0.8, mood: 0.6 },
       color: "bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-500/50"
     },
     {
@@ -78,7 +82,7 @@ export default function BeingDemo() {
     {
       name: "Reflection",
       icon: Brain,
-      experience: { reflection: 0.8, consistency: 0.6, stress: -0.3 },
+      experience: { reflection: 0.8, consistency: 0.6 },
       color: "bg-blue-500/20 hover:bg-blue-500/30 border-blue-500/50"
     },
     {
@@ -87,42 +91,18 @@ export default function BeingDemo() {
       experience: { vulnerability: 0.7, consistency: 0.8, mood: 0.5 },
       color: "bg-pink-500/20 hover:bg-pink-500/30 border-pink-500/50"
     },
-    {
-      name: "Curiosity",
-      icon: Lightbulb,
-      experience: { novelty: 0.7, reflection: 0.4 },
-      color: "bg-purple-500/20 hover:bg-purple-500/30 border-purple-500/50"
-    },
-    {
-      name: "Conflict",
-      icon: AlertCircle,
-      experience: { conflict: 0.8, stress: 0.6, mood: -0.6 },
-      color: "bg-orange-500/20 hover:bg-orange-500/30 border-orange-500/50"
-    },
   ];
 
-  // State value display component
-  const StateValue = ({ label, value, icon: Icon, color }: any) => (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Icon className="w-3 h-3" />
-        <span>{label}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            className={`h-full ${color}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.abs(value) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-        <span className="text-xs font-mono w-12 text-right">
-          {value.toFixed(2)}
-        </span>
-      </div>
-    </div>
-  );
+  // State slider config
+  const stateSliders = [
+    { key: 'K' as const, label: 'Knowledge', icon: Brain, min: 0, max: 1, color: 'bg-blue-500' },
+    { key: 'V' as const, label: 'Valence', icon: beingState.V >= 0 ? Smile : Frown, min: -1, max: 1, color: beingState.V >= 0 ? 'bg-green-500' : 'bg-red-500' },
+    { key: 'A' as const, label: 'Arousal', icon: Zap, min: 0, max: 1, color: 'bg-yellow-500' },
+    { key: 'H' as const, label: 'Entropy', icon: AlertCircle, min: 0, max: 1, color: 'bg-orange-500' },
+    { key: 'I' as const, label: 'Integration', icon: Activity, min: 0, max: 1, color: 'bg-purple-500' },
+    { key: 'C' as const, label: 'Curiosity', icon: Lightbulb, min: 0, max: 1, color: 'bg-pink-500' },
+    { key: 'U' as const, label: 'Attachment', icon: Link2, min: 0, max: 1, color: 'bg-teal-500' },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -154,7 +134,7 @@ export default function BeingDemo() {
                 className="gap-2"
               >
                 <Activity className="w-4 h-4" />
-                {autoMode ? "Auto Mode On" : "Auto Mode Off"}
+                {autoMode ? "Auto On" : "Auto Off"}
               </Button>
               <Button
                 variant="outline"
@@ -179,16 +159,17 @@ export default function BeingDemo() {
               <div>
                 <h2 className="text-lg font-semibold mb-2">Visual Consciousness</h2>
                 <p className="text-sm text-muted-foreground">
-                  Watch the being respond to experiences in real-time. Colors, motion, and form express internal state.
+                  Adjust state variables directly or apply experiences to see the being evolve.
                 </p>
               </div>
               
-              <div className="aspect-square w-full bg-background/50 rounded-lg overflow-hidden">
+              {/* Dark background container for the Being */}
+              <div className="aspect-square w-full rounded-lg overflow-hidden bg-[#0a0a0f]">
                 <BeingCanvas renderState={renderState} enableControls={true} />
               </div>
 
               {/* Render State Display */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+              <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
                 <div className="space-y-1">
                   <div className="text-xs text-muted-foreground">Core Radius</div>
                   <div className="text-sm font-mono">{renderState.coreRadius.toFixed(2)}</div>
@@ -219,56 +200,33 @@ export default function BeingDemo() {
 
           {/* Right: Controls */}
           <div className="space-y-6">
-            {/* Internal State */}
+            {/* Internal State Sliders */}
             <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
               <h2 className="text-lg font-semibold mb-4">Internal State</h2>
-              <div className="space-y-4">
-                <StateValue
-                  label="Knowledge (K)"
-                  value={beingState.K}
-                  icon={Brain}
-                  color="bg-blue-500"
-                />
-                <StateValue
-                  label="Valence (V)"
-                  value={beingState.V}
-                  icon={beingState.V >= 0 ? Smile : Frown}
-                  color={beingState.V >= 0 ? "bg-green-500" : "bg-red-500"}
-                />
-                <StateValue
-                  label="Arousal (A)"
-                  value={beingState.A}
-                  icon={Zap}
-                  color="bg-yellow-500"
-                />
-                <StateValue
-                  label="Entropy (H)"
-                  value={beingState.H}
-                  icon={AlertCircle}
-                  color="bg-orange-500"
-                />
-                <StateValue
-                  label="Integration (I)"
-                  value={beingState.I}
-                  icon={Activity}
-                  color="bg-purple-500"
-                />
-                <StateValue
-                  label="Curiosity (C)"
-                  value={beingState.C}
-                  icon={Lightbulb}
-                  color="bg-pink-500"
-                />
-                <StateValue
-                  label="Attachment (U)"
-                  value={beingState.U}
-                  icon={Link2}
-                  color="bg-teal-500"
-                />
+              <div className="space-y-5">
+                {stateSliders.map(({ key, label, icon: Icon, min, max, color }) => (
+                  <div key={key} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                        <span>{label} ({key})</span>
+                      </div>
+                      <span className="text-sm font-mono">{beingState[key].toFixed(2)}</span>
+                    </div>
+                    <Slider
+                      min={min}
+                      max={max}
+                      step={0.01}
+                      value={[beingState[key]]}
+                      onValueChange={(value) => updateState(key, value[0])}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
               </div>
             </Card>
 
-            {/* Experience Controls */}
+            {/* Experience Buttons */}
             <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
               <h2 className="text-lg font-semibold mb-4">Apply Experience</h2>
               <div className="grid grid-cols-2 gap-3">
@@ -285,48 +243,8 @@ export default function BeingDemo() {
                 ))}
               </div>
             </Card>
-
-            {/* Custom Experience */}
-            <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-              <h2 className="text-lg font-semibold mb-4">Custom Experience</h2>
-              <div className="space-y-4">
-                {[
-                  { key: 'novelty', label: 'Novelty', range: [0, 1] },
-                  { key: 'mood', label: 'Mood', range: [-1, 1] },
-                  { key: 'stress', label: 'Stress', range: [0, 1] },
-                  { key: 'reflection', label: 'Reflection', range: [0, 1] },
-                ].map(({ key, label, range }) => (
-                  <div key={key} className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{label}</span>
-                      <span className="font-mono">{range[0]} - {range[1]}</span>
-                    </div>
-                    <Slider
-                      min={range[0]}
-                      max={range[1]}
-                      step={0.1}
-                      defaultValue={[0]}
-                      onValueChange={(value) => {
-                        applyExperience({ [key]: value[0] });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </Card>
           </div>
         </div>
-
-        {/* Info Panel */}
-        <Card className="mt-8 p-6 bg-card/50 backdrop-blur-sm border-border/50">
-          <h2 className="text-lg font-semibold mb-3">About the Conscious Being Engine</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            This is a modular mathematical system representing the internal state, growth, emotional patterns, 
-            and visual expression of Telos's evolving AI being. The engine accepts user experiences, updates 
-            internal state deterministically, applies self-regulation behaviors, and outputs normalized values 
-            for rendering. Try different experiences and watch how the being's consciousness evolves over time.
-          </p>
-        </Card>
       </div>
     </div>
   );
