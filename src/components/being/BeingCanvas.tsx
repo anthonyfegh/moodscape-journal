@@ -39,7 +39,7 @@ export const BeingCanvas = ({
         }}
         dpr={[1, 2]}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+        <PerspectiveCamera makeDefault position={[0, 0, 3]} />
         
         {/* Ambient atmospheric lighting */}
         <ambientLight intensity={0.4} />
