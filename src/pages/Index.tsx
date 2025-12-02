@@ -182,6 +182,23 @@ const IndexContent = () => {
   const liveBeingState = useMemo(() => {
     if (!beingState) return beingState;
     
+    // Map personaState to valence for immediate color response
+    const personaValenceMap: Record<string, number> = {
+      joyful: 0.8,
+      happy: 0.7,
+      peaceful: 0.5,
+      calm: 0.4,
+      reflective: 0.3,
+      contemplative: 0.2,
+      neutral: 0,
+      melancholic: -0.4,
+      sad: -0.6,
+      anxious: -0.3,
+      restless: -0.2,
+      intense: -0.5,
+      angry: -0.7,
+    };
+    
     // When hovering a moment, derive emotional state from the moment's emotion
     if (hoveredMoment) {
       // Map emotion to valence and arousal
@@ -229,6 +246,9 @@ const IndexContent = () => {
       };
     }
     
+    // Get valence from detected persona state (mood-based)
+    const detectedValence = personaValenceMap[personaState.toLowerCase()] ?? 0;
+    
     // Calculate idle dampening effects
     // Idle effects gradually increase over 30 seconds
     const idleFactor = Math.min(idleTime / 30, 1); // 0 to 1 over 30 seconds
@@ -245,11 +265,9 @@ const IndexContent = () => {
     const newArousal = Math.max(0.1, Math.min(beingState.A + typingArousalBoost - idleArousalReduction, 1));
     const newCuriosity = Math.min(beingState.C + idleCuriosityBoost, 1);
     
-    // Valence slowly drifts toward neutral (0) when idle
-    const idleValenceNormalization = idleFactor * 0.2;
-    const newValence = beingState.V > 0 
-      ? Math.max(0, beingState.V - idleValenceNormalization)
-      : Math.min(0, beingState.V + idleValenceNormalization);
+    // Use detected valence when typing, drift toward neutral when idle
+    // Blend between detected valence and neutral based on idle factor
+    const newValence = detectedValence * (1 - idleFactor * 0.5);
     
     return {
       ...beingState,
@@ -258,7 +276,7 @@ const IndexContent = () => {
       C: newCuriosity,
       V: newValence,
     };
-  }, [beingState, typingSpeed, hoveredMoment, idleTime]);
+  }, [beingState, typingSpeed, hoveredMoment, idleTime, personaState]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {
