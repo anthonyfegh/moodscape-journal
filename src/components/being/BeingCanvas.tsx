@@ -35,7 +35,7 @@ export const BeingCanvas = ({ renderState, className = "w-full h-full", enableCo
         }}
         dpr={[1, 2]}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 1]} />
+        <PerspectiveCamera makeDefault position={[0, 0, 4]} />
 
         {/* Ambient atmospheric lighting */}
         <ambientLight intensity={0.4} />
