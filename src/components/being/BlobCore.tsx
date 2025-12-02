@@ -214,17 +214,30 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
           float noiseColorBlend = vNoise * entropyLevel * 0.4;
           baseColor = mix(baseColor, secondaryColor, noiseColorBlend);
           
-          // Atmospheric glow based on arousal - MORE DRAMATIC
-          vec3 glowColor = baseColor * (1.0 + fresnel * glow * 4.0);
+          // AROUSAL EFFECT: Instead of whitening, increase saturation and add pulsing corona
+          // Pulsing intensity based on arousal (glow)
+          float arousalPulse = sin(time * (3.0 + glow * 8.0)) * 0.5 + 0.5;
+          float pulseIntensity = arousalPulse * glow * 0.4;
           
-          // Add shimmer based on connection density - MORE VISIBLE
-          float shimmer = sin(time * 4.0 + vPosition.x * 12.0) * 0.25 * connectionDensity;
-          glowColor += vec3(shimmer);
+          // Boost color saturation instead of brightness for high arousal
+          vec3 saturatedColor = baseColor * (1.0 + pulseIntensity * 0.3);
           
-          // Soft edges
+          // Add colored corona at edges (fresnel) - uses accent color for variety
+          vec3 coronaColor = mix(accentColor, secondaryColor, arousalPulse);
+          vec3 corona = coronaColor * fresnel * glow * 1.5;
+          
+          vec3 finalColor = saturatedColor + corona;
+          
+          // Add shimmer based on connection density and arousal
+          float shimmerSpeed = 4.0 + glow * 6.0;
+          float shimmerIntensity = 0.15 + glow * 0.2;
+          float shimmer = sin(time * shimmerSpeed + vPosition.x * 12.0) * shimmerIntensity * connectionDensity;
+          finalColor += coronaColor * shimmer;
+          
+          // Soft edges with arousal affecting opacity slightly
           float alpha = 0.85 + fresnel * 0.15;
           
-          gl_FragColor = vec4(glowColor, alpha);
+          gl_FragColor = vec4(finalColor, alpha);
         }
       `,
       transparent: true,
