@@ -18,7 +18,7 @@ const BeingConversation = () => {
   const [phase, setPhase] = useState<ConversationPhase>("idle");
   const [displayedResponse, setDisplayedResponse] = useState("");
   const [lastUserMessage, setLastUserMessage] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   
   const {
     messages,
@@ -216,92 +216,37 @@ const BeingConversation = () => {
         )}
       </AnimatePresence>
 
-      {/* Idle state — invitation to speak */}
-      <AnimatePresence>
-        {phase === "idle" && !displayedResponse && (
-          <motion.div
-            className="absolute inset-0 flex items-end justify-center pb-32 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.button
-              className="text-white/30 text-lg hover:text-white/50 transition-colors cursor-pointer pointer-events-auto"
-              onClick={handleStartComposing}
-              animate={{ opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              speak to me
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Reflecting state — click to continue */}
-      <AnimatePresence>
-        {phase === "reflecting" && displayedResponse && (
-          <motion.div
-            className="absolute bottom-8 left-0 right-0 flex justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 2 }}
-          >
-            <motion.button
-              className="text-white/20 text-sm hover:text-white/40 transition-colors"
-              onClick={handleStartComposing}
-              whileHover={{ scale: 1.05 }}
+      {/* Input textarea — always at bottom */}
+      <div className="absolute inset-x-0 bottom-0 p-6">
+        <div className="max-w-2xl mx-auto">
+          <textarea
+            ref={inputRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={handleStartComposing}
+            placeholder="speak to me..."
+            disabled={isLoading}
+            rows={2}
+            className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-white text-lg placeholder:text-white/30 focus:outline-none focus:border-white/20 resize-none disabled:opacity-50"
+          />
+          {message.trim() && !isLoading && (
+            <motion.div 
+              className="flex justify-end mt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
-              continue
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Composing state — minimal input */}
-      <AnimatePresence>
-        {phase === "composing" && (
-          <motion.div
-            className="absolute inset-x-0 bottom-0 p-8"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            transition={{ duration: 0.4 }}
-          >
-            <div className="max-w-2xl mx-auto">
-              <input
-                ref={inputRef}
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder=""
-                className="w-full bg-transparent border-none text-white text-xl md:text-2xl text-center placeholder:text-white/20 focus:outline-none focus:ring-0"
-                autoFocus
-              />
-              
-              <div className="flex justify-center gap-8 mt-6">
-                <button
-                  onClick={() => setPhase("idle")}
-                  className="text-white/30 text-sm hover:text-white/50 transition-colors"
-                >
-                  cancel
-                </button>
-                {message.trim() && (
-                  <motion.button
-                    onClick={handleSend}
-                    className="text-white/60 text-sm hover:text-white/80 transition-colors"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    send
-                  </motion.button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button
+                onClick={handleSend}
+                className="text-white/60 text-sm hover:text-white/80 transition-colors"
+              >
+                press enter to send
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
 
       {/* Being's emotional state indicator — subtle, ambient */}
       <div className="absolute top-8 left-8 pointer-events-none">
