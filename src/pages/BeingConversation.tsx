@@ -19,6 +19,7 @@ const BeingConversation = () => {
   const [fullResponse, setFullResponse] = useState("");
   const [displayedResponse, setDisplayedResponse] = useState("");
   const [lastUserMessage, setLastUserMessage] = useState("");
+  const [beingMessageCount, setBeingMessageCount] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typewriterRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -41,12 +42,24 @@ const BeingConversation = () => {
 
   // Track the latest being response and trigger typewriter
   useEffect(() => {
-    const lastBeingMessage = [...messages].reverse().find(m => m.role === "being");
-    if (lastBeingMessage?.content && phase === "responding" && lastBeingMessage.content !== fullResponse) {
-      setFullResponse(lastBeingMessage.content);
-      setDisplayedResponse("");
+    const beingMessages = messages.filter(m => m.role === "being");
+    const currentCount = beingMessages.length;
+    
+    // Only process if there's a new being message
+    if (currentCount > beingMessageCount) {
+      const lastBeingMessage = beingMessages[beingMessages.length - 1];
+      if (lastBeingMessage?.content) {
+        console.log("New being message detected:", lastBeingMessage.content.substring(0, 50));
+        setBeingMessageCount(currentCount);
+        setFullResponse(lastBeingMessage.content);
+        setDisplayedResponse("");
+        // Ensure we're in responding phase
+        if (phase !== "responding") {
+          setPhase("responding");
+        }
+      }
     }
-  }, [messages, phase, fullResponse]);
+  }, [messages, beingMessageCount, phase]);
 
   // Typewriter effect - word by word
   useEffect(() => {
