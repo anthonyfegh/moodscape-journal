@@ -5,6 +5,8 @@ import { useBeingVisualState } from '@/hooks/useBeingVisualState';
 import { BlobCore } from './BlobCore';
 import { ParticleSystem } from './ParticleSystem';
 import { Connections } from './Connections';
+import { FlowingAura } from './FlowingAura';
+import { EnergyStreams } from './EnergyStreams';
 import { Suspense } from 'react';
 import * as THREE from 'three';
 
@@ -45,6 +47,12 @@ export const BeingCanvas = ({
         <pointLight position={[-10, -10, -10]} intensity={0.4} color="#8888ff" />
         
         <Suspense fallback={null}>
+          {/* Flowing aura rings */}
+          <FlowingAura renderState={smoothedState} />
+          
+          {/* Energy streams */}
+          <EnergyStreams renderState={smoothedState} />
+          
           {/* Core blob organism */}
           <BlobCore renderState={smoothedState} />
           
