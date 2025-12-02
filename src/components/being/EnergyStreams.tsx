@@ -7,49 +7,97 @@ interface EnergyStreamsProps {
   renderState: RenderState;
 }
 
-const STREAM_COUNT = 8;
-const POINTS_PER_STREAM = 50;
+const ORB_COUNT = 12;
 
 /**
- * Flowing energy streams that spiral around the being
+ * Floating energy orbs that drift around the being
+ * Soft, nebula-like wisps instead of lines
  */
 export const EnergyStreams = ({ renderState }: EnergyStreamsProps) => {
   const groupRef = useRef<THREE.Group>(null);
-  const linesRef = useRef<THREE.Line[]>([]);
+  const orbsRef = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
 
-  // Generate initial stream data
-  const streamData = useMemo(() => {
-    const data: { baseAngle: number; speed: number; radius: number; hueOffset: number }[] = [];
+  // Generate orb data
+  const orbData = useMemo(() => {
+    const data: { 
+      baseAngle: number; 
+      speed: number; 
+      radius: number; 
+      size: number;
+      hueOffset: number;
+      phase: number;
+      verticalSpeed: number;
+    }[] = [];
     
-    for (let i = 0; i < STREAM_COUNT; i++) {
+    for (let i = 0; i < ORB_COUNT; i++) {
       data.push({
-        baseAngle: (i / STREAM_COUNT) * Math.PI * 2,
-        speed: 0.5 + Math.random() * 0.5,
-        radius: 1.5 + Math.random() * 0.5,
-        hueOffset: (Math.random() - 0.5) * 0.2,
+        baseAngle: (i / ORB_COUNT) * Math.PI * 2,
+        speed: 0.2 + Math.random() * 0.3,
+        radius: 1.8 + Math.random() * 1.2,
+        size: 0.15 + Math.random() * 0.25,
+        hueOffset: (Math.random() - 0.5) * 0.25,
+        phase: Math.random() * Math.PI * 2,
+        verticalSpeed: 0.3 + Math.random() * 0.4,
       });
     }
     
     return data;
   }, []);
 
-  // Create geometries for each stream
-  const geometries = useMemo(() => {
-    return streamData.map(() => {
-      const positions = new Float32Array(POINTS_PER_STREAM * 3);
-      const colors = new Float32Array(POINTS_PER_STREAM * 3);
-      
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      
-      return geometry;
+  // Create shader material for soft glowing orbs
+  const createOrbMaterial = () => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: new THREE.Color(1, 1, 1) },
+        glow: { value: 0.5 },
+        time: { value: 0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vPosition;
+        
+        void main() {
+          vUv = uv;
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform float glow;
+        uniform float time;
+        varying vec2 vUv;
+        
+        void main() {
+          // Soft radial gradient
+          vec2 center = vUv - 0.5;
+          float dist = length(center) * 2.0;
+          
+          // Soft falloff
+          float alpha = 1.0 - smoothstep(0.0, 1.0, dist);
+          alpha = pow(alpha, 1.5);
+          
+          // Inner glow
+          float innerGlow = 1.0 - smoothstep(0.0, 0.5, dist);
+          vec3 finalColor = color * (1.0 + innerGlow * glow);
+          
+          gl_FragColor = vec4(finalColor, alpha * 0.6);
+        }
+      `,
+      transparent: true,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
-  }, [streamData]);
+  };
+
+  const materials = useMemo(() => {
+    return orbData.map(() => createOrbMaterial());
+  }, [orbData]);
 
   // HSL to RGB
-  const hslToRgb = (h: number, s: number, l: number): [number, number, number] => {
+  const hslToRgb = (h: number, s: number, l: number): THREE.Color => {
     let r, g, b;
     
     if (s === 0) {
@@ -71,74 +119,69 @@ export const EnergyStreams = ({ renderState }: EnergyStreamsProps) => {
       b = hue2rgb(p, q, h - 1/3);
     }
     
-    return [r, g, b];
+    return new THREE.Color(r, g, b);
   };
 
   useFrame((state, delta) => {
     timeRef.current += delta;
     
-    const baseRadius = 1.2 + renderState.coreRadius * 0.8;
-    const flowSpeed = 0.5 + renderState.particleActivity * 1.0;
-    const wobble = renderState.entropyLevel * 0.5;
+    const baseRadius = 1.5 + renderState.coreRadius * 0.5;
+    const flowSpeed = 0.3 + renderState.particleActivity * 0.5;
+    const wobble = renderState.entropyLevel * 0.8;
+    const baseHue = renderState.colorHue / 360;
     
-    geometries.forEach((geometry, streamIdx) => {
-      const stream = streamData[streamIdx];
-      const positions = geometry.attributes.position.array as Float32Array;
-      const colors = geometry.attributes.color.array as Float32Array;
+    orbsRef.current.forEach((orb, i) => {
+      if (!orb) return;
       
-      const baseHue = renderState.colorHue / 360;
+      const data = orbData[i];
+      const material = materials[i];
       
-      for (let i = 0; i < POINTS_PER_STREAM; i++) {
-        const t = i / POINTS_PER_STREAM;
-        const i3 = i * 3;
-        
-        // Spiral motion
-        const angle = stream.baseAngle + t * Math.PI * 4 + timeRef.current * stream.speed * flowSpeed;
-        const radius = baseRadius * stream.radius * (0.5 + t * 0.5);
-        const height = (t - 0.5) * 2 * (1 + wobble * Math.sin(timeRef.current + streamIdx));
-        
-        // Add noise-based displacement
-        const noiseX = Math.sin(t * 10 + timeRef.current * 2 + streamIdx) * wobble * 0.3;
-        const noiseY = Math.cos(t * 8 + timeRef.current * 1.5 + streamIdx) * wobble * 0.3;
-        
-        positions[i3] = Math.cos(angle) * radius + noiseX;
-        positions[i3 + 1] = height + noiseY;
-        positions[i3 + 2] = Math.sin(angle) * radius;
-        
-        // Color varies along stream and with state
-        const hueVariation = stream.hueOffset + t * renderState.entropyLevel * 0.2;
-        const h = (baseHue + hueVariation + 1) % 1;
-        const s = 0.5 + renderState.glow * 0.3;
-        const l = 0.4 + t * 0.3 + renderState.glow * 0.2;
-        
-        const [r, g, b] = hslToRgb(h, s, l);
-        colors[i3] = r;
-        colors[i3 + 1] = g;
-        colors[i3 + 2] = b;
-      }
+      // Orbital position
+      const angle = data.baseAngle + timeRef.current * data.speed * flowSpeed;
+      const radius = baseRadius * data.radius;
       
-      geometry.attributes.position.needsUpdate = true;
-      geometry.attributes.color.needsUpdate = true;
+      // Vertical bobbing with entropy influence
+      const verticalOffset = Math.sin(timeRef.current * data.verticalSpeed + data.phase) * wobble;
+      
+      // Position with gentle drift
+      orb.position.x = Math.cos(angle) * radius;
+      orb.position.y = verticalOffset;
+      orb.position.z = Math.sin(angle) * radius;
+      
+      // Scale pulsing
+      const scalePulse = 1 + Math.sin(timeRef.current * 2 + data.phase) * 0.2 * renderState.glow;
+      const baseScale = data.size * (0.8 + renderState.coreRadius * 0.4);
+      orb.scale.setScalar(baseScale * scalePulse);
+      
+      // Always face camera (billboard effect)
+      orb.lookAt(state.camera.position);
+      
+      // Update color based on state
+      const h = (baseHue + data.hueOffset + Math.sin(timeRef.current * 0.3 + i) * renderState.entropyLevel * 0.1 + 1) % 1;
+      const s = 0.5 + renderState.particleActivity * 0.4;
+      const l = 0.5 + renderState.glow * 0.3;
+      
+      material.uniforms.color.value = hslToRgb(h, s, l);
+      material.uniforms.glow.value = renderState.glow;
+      material.uniforms.time.value = timeRef.current;
     });
     
     // Rotate the whole group slowly
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.05;
+      groupRef.current.rotation.y += delta * 0.03;
     }
   });
 
   return (
     <group ref={groupRef}>
-      {geometries.map((geometry, i) => (
-        <primitive key={i} object={new THREE.Line(
-          geometry,
-          new THREE.LineBasicMaterial({
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.4 + renderState.connectionDensity * 0.4,
-            blending: THREE.AdditiveBlending,
-          })
-        )} />
+      {orbData.map((data, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { if (el) orbsRef.current[i] = el; }}
+          material={materials[i]}
+        >
+          <planeGeometry args={[1, 1]} />
+        </mesh>
       ))}
     </group>
   );
