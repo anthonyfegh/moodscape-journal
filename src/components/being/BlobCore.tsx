@@ -42,33 +42,33 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
-  // Primary color from colorHue (Valence-based)
+  // Primary color from colorHue (Valence-based) - MORE DRAMATIC
   const primaryColor = useMemo(() => {
     const h = renderState.colorHue / 360;
-    const s = 0.6 + renderState.particleActivity * 0.3; // Curiosity affects saturation
-    const l = 0.45 + renderState.glow * 0.25; // Arousal affects lightness
+    const s = 0.5 + renderState.particleActivity * 0.5; // Increased saturation range
+    const l = 0.35 + renderState.glow * 0.45; // Wider lightness range for more contrast
     return hslToRgb(h, s, l);
   }, [renderState.colorHue, renderState.glow, renderState.particleActivity]);
 
-  // Secondary color - complementary shifted by entropy
+  // Secondary color - complementary shifted by entropy - MORE DRAMATIC
   const secondaryColor = useMemo(() => {
-    // Entropy shifts the hue toward a contrasting color
-    const hueShift = renderState.entropyLevel * 0.15; // Up to 54 degrees shift
+    // Entropy shifts the hue toward a contrasting color - increased shift
+    const hueShift = renderState.entropyLevel * 0.35; // Up to 126 degrees shift (was 54)
     const h = ((renderState.colorHue / 360) + hueShift) % 1;
-    const s = 0.5 + renderState.connectionDensity * 0.3; // Attachment affects saturation
-    const l = 0.5 + renderState.glow * 0.2;
+    const s = 0.4 + renderState.connectionDensity * 0.5; // Wider range
+    const l = 0.4 + renderState.glow * 0.35;
     return hslToRgb(h, s, l);
   }, [renderState.colorHue, renderState.entropyLevel, renderState.connectionDensity, renderState.glow]);
 
-  // Accent color - triadic color based on curiosity
+  // Accent color - triadic color based on curiosity - MORE DRAMATIC
   const accentColor = useMemo(() => {
-    // Curiosity creates a triadic accent
-    const hueShift = 0.33 * renderState.particleActivity; // Up to 120 degrees
+    // Curiosity creates a triadic accent - full range
+    const hueShift = 0.5 * renderState.particleActivity; // Up to 180 degrees (was 120)
     const h = ((renderState.colorHue / 360) + hueShift) % 1;
-    const s = 0.7;
-    const l = 0.6;
+    const s = 0.6 + renderState.particleActivity * 0.3;
+    const l = 0.5 + renderState.glow * 0.25;
     return hslToRgb(h, s, l);
-  }, [renderState.colorHue, renderState.particleActivity]);
+  }, [renderState.colorHue, renderState.particleActivity, renderState.glow]);
 
   // Custom shader material for organic deformation with multi-color support
   const shaderMaterial = useMemo(() => {
@@ -171,16 +171,16 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
           // Pass noise to fragment shader for color variation
           vNoise = noise1 * 0.5 + 0.5;
           
-          // Combine noise layers with entropy influence
-          float displacement = (noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2) * entropyLevel * 0.4;
+          // Combine noise layers with entropy influence - MORE DRAMATIC displacement
+          float displacement = (noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2) * entropyLevel * 0.8;
           
-          // Breathing pulsation with curiosity influence
-          float pulse = sin(time * (1.5 + particleActivity)) * 0.05 * coreRadius;
+          // Breathing pulsation with curiosity influence - MORE PRONOUNCED
+          float pulse = sin(time * (1.5 + particleActivity * 2.0)) * 0.12 * coreRadius;
           
-          // Apply displacement
+          // Apply displacement with amplified effect
           vec3 newPosition = position + normal * (displacement + pulse);
           
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition * coreRadius, 1.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition * coreRadius * 1.2, 1.0);
         }
       `,
       fragmentShader: `
@@ -214,11 +214,11 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
           float noiseColorBlend = vNoise * entropyLevel * 0.4;
           baseColor = mix(baseColor, secondaryColor, noiseColorBlend);
           
-          // Atmospheric glow based on arousal
-          vec3 glowColor = baseColor * (1.0 + fresnel * glow * 2.0);
+          // Atmospheric glow based on arousal - MORE DRAMATIC
+          vec3 glowColor = baseColor * (1.0 + fresnel * glow * 4.0);
           
-          // Add subtle shimmer based on connection density
-          float shimmer = sin(time * 3.0 + vPosition.x * 10.0) * 0.1 * connectionDensity;
+          // Add shimmer based on connection density - MORE VISIBLE
+          float shimmer = sin(time * 4.0 + vPosition.x * 12.0) * 0.25 * connectionDensity;
           glowColor += vec3(shimmer);
           
           // Soft edges

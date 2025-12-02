@@ -5,7 +5,7 @@ import { RenderState, interpolateRenderState } from '@/consciousness';
  * Hook for smoothly interpolating between RenderStates
  * Ensures all visual transitions are fluid and organic
  */
-export const useBeingVisualState = (targetState: RenderState, smoothingDuration: number = 300) => {
+export const useBeingVisualState = (targetState: RenderState, smoothingDuration: number = 500) => {
   const [currentState, setCurrentState] = useState<RenderState>(targetState);
   const animationRef = useRef<number>();
   const startStateRef = useRef<RenderState>(targetState);
