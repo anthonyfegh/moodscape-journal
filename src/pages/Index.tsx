@@ -85,6 +85,23 @@ const IndexContent = () => {
   const typingSpeedIntervalRef = useRef<NodeJS.Timeout>();
   const charCountRef = useRef(0);
   const [hoveredMoment, setHoveredMoment] = useState<LogEntry | null>(null);
+  const [idleTime, setIdleTime] = useState(0); // seconds since last keystroke
+  const idleIntervalRef = useRef<NodeJS.Timeout>();
+  const lastActivityRef = useRef<number>(Date.now());
+
+  // Track idle time - increment every second when not typing
+  useEffect(() => {
+    idleIntervalRef.current = setInterval(() => {
+      const secondsSinceActivity = Math.floor((Date.now() - lastActivityRef.current) / 1000);
+      setIdleTime(secondsSinceActivity);
+    }, 1000);
+    
+    return () => {
+      if (idleIntervalRef.current) {
+        clearInterval(idleIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Analyze being state based on journal content
   const analyzeBeingState = useCallback(async (currentText: string) => {
@@ -161,6 +178,7 @@ const IndexContent = () => {
 
   // Blend typing speed into entropy for immediate responsiveness
   // Also blend hovered moment's emotional state when hovering
+  // Apply idle effects when user stops typing
   const liveBeingState = useMemo(() => {
     if (!beingState) return beingState;
     
@@ -211,19 +229,36 @@ const IndexContent = () => {
       };
     }
     
+    // Calculate idle dampening effects
+    // Idle effects gradually increase over 30 seconds
+    const idleFactor = Math.min(idleTime / 30, 1); // 0 to 1 over 30 seconds
+    const idleArousalReduction = idleFactor * 0.4; // Reduce arousal up to 0.4
+    const idleEntropyReduction = idleFactor * 0.3; // Reduce entropy up to 0.3
+    const idleCuriosityBoost = idleFactor * 0.2; // Slight curiosity boost when contemplating
+    
     // Normal typing speed effects when not hovering
     const typingEntropyBoost = Math.min(typingSpeed / 15, 0.4);
-    const newEntropy = Math.min(beingState.H + typingEntropyBoost, 1);
-    
     const typingArousalBoost = Math.min(typingSpeed / 20, 0.2);
-    const newArousal = Math.min(beingState.A + typingArousalBoost, 1);
+    
+    // Apply both typing boost and idle dampening
+    const newEntropy = Math.max(0.1, Math.min(beingState.H + typingEntropyBoost - idleEntropyReduction, 1));
+    const newArousal = Math.max(0.1, Math.min(beingState.A + typingArousalBoost - idleArousalReduction, 1));
+    const newCuriosity = Math.min(beingState.C + idleCuriosityBoost, 1);
+    
+    // Valence slowly drifts toward neutral (0) when idle
+    const idleValenceNormalization = idleFactor * 0.2;
+    const newValence = beingState.V > 0 
+      ? Math.max(0, beingState.V - idleValenceNormalization)
+      : Math.min(0, beingState.V + idleValenceNormalization);
     
     return {
       ...beingState,
       H: newEntropy,
       A: newArousal,
+      C: newCuriosity,
+      V: newValence,
     };
-  }, [beingState, typingSpeed, hoveredMoment]);
+  }, [beingState, typingSpeed, hoveredMoment, idleTime]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {
@@ -387,6 +422,10 @@ const IndexContent = () => {
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
+    
+    // Reset idle time on activity
+    lastActivityRef.current = Date.now();
+    setIdleTime(0);
     
     // Track characters typed for speed calculation
     const charsTyped = Math.abs(newText.length - lastTextLengthRef.current);
