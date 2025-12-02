@@ -23,33 +23,9 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Embedding memory for moment: ${momentId}`);
+    console.log(`Creating memory node for moment: ${momentId}`);
 
-    // Step 1: Generate embedding using Lovable AI
-    const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: momentText,
-      }),
-    });
-
-    if (!embeddingResponse.ok) {
-      const errorText = await embeddingResponse.text();
-      console.error("Embedding API error:", errorText);
-      throw new Error(`Embedding API failed: ${embeddingResponse.status}`);
-    }
-
-    const embeddingData = await embeddingResponse.json();
-    const embedding = embeddingData.data[0].embedding;
-
-    console.log(`Generated embedding with ${embedding.length} dimensions`);
-
-    // Step 2: Extract metadata using AI
+    // Extract metadata using AI (embedding not available on Lovable AI gateway)
     const metadataResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -98,9 +74,11 @@ Respond ONLY with valid JSON, no markdown.`
       } catch (parseError) {
         console.error("Failed to parse metadata:", parseError);
       }
+    } else {
+      console.log("Metadata extraction failed, using defaults");
     }
 
-    // Step 3: Store memory node in database
+    // Store memory node in database (without embedding for now)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -110,7 +88,7 @@ Respond ONLY with valid JSON, no markdown.`
       .insert({
         user_id: userId,
         moment_id: momentId,
-        embedding: embedding,
+        // embedding: null - skipping since embedding API not available
         emotional_tone: metadata.emotional_tone,
         topics: metadata.topics || [],
         people_mentioned: metadata.people_mentioned || [],
