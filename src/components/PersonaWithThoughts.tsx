@@ -126,15 +126,16 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
           animate={{
             filter: isTyping ? "brightness(1.1)" : isListening ? "brightness(1.4)" : "brightness(1)",
             boxShadow: isTyping 
-              ? `0 0 40px ${moodColor}60, 0 0 20px ${moodColor}40`
+              ? `0 0 60px ${moodColor}70, 0 0 30px ${moodColor}50, inset 0 0 40px ${moodColor}30`
               : isListening
-              ? `0 0 80px ${moodColor}, 0 0 40px ${moodColor}80`
-              : `0 0 30px ${moodColor}40`,
+              ? `0 0 100px ${moodColor}, 0 0 60px ${moodColor}80, inset 0 0 50px ${moodColor}40`
+              : `0 0 40px ${moodColor}50, inset 0 0 30px ${moodColor}20`,
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-20 h-20 rounded-full overflow-hidden border-4 transition-all duration-700 hover:scale-105"
+          className="w-36 h-36 rounded-full overflow-hidden border-4 transition-all duration-700 hover:scale-105"
           style={{
             borderColor: moodColor,
+            background: `radial-gradient(circle at center, ${moodColor}15 0%, transparent 70%)`,
           }}
         >
           <BeingCanvas 
@@ -147,7 +148,7 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background"
+          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-background"
           style={{ backgroundColor: moodColor }}
         />
       </motion.div>
