@@ -25,7 +25,7 @@ export const BeingCanvas = ({ renderState, className = "w-full h-full", enableCo
   const smoothedState = useBeingVisualState(renderState, 300);
 
   return (
-    <div className={className}>
+    <div className={`${className} bg-black/80 rounded-xl`}>
       <Canvas
         gl={{
           antialias: true,
