@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.analyze-being-state]
 verify_jwt = false
+
+[functions.embed-memory]
+verify_jwt = false
+
+[functions.recall-memories]
+verify_jwt = false
+
+[functions.being-conversation]
+verify_jwt = false

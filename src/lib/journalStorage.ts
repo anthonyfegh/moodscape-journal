@@ -288,6 +288,20 @@ export const journalStorage = {
       throw new Error("Failed to create moment");
     }
 
+    // Asynchronously embed the moment into the memory graph (fire and forget)
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/embed-memory`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        momentId: data.id,
+        momentText: text,
+        userId: user.id,
+      }),
+    }).catch(err => console.error("Error embedding memory:", err));
+
     return {
       id: data.id,
       subJournalId: data.sub_journal_id,
