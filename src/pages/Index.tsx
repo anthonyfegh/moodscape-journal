@@ -176,14 +176,9 @@ const IndexContent = () => {
     };
   }, []);
 
-  // Blend typing speed into entropy for immediate responsiveness
-  // Also blend hovered moment's emotional state when hovering
-  // Apply idle effects when user stops typing
-  const liveBeingState = useMemo(() => {
-    if (!beingState) return beingState;
-    
-    // Map personaState to valence for immediate color response
-    const personaValenceMap: Record<string, number> = {
+  // Helper to map emotion/persona to valence
+  const emotionToValence = (emotion: string): number => {
+    const valenceMap: Record<string, number> = {
       joyful: 0.8,
       happy: 0.7,
       peaceful: 0.5,
@@ -198,6 +193,42 @@ const IndexContent = () => {
       intense: -0.5,
       angry: -0.7,
     };
+    return valenceMap[emotion.toLowerCase()] ?? 0;
+  };
+
+  // Calculate weighted valence from:
+  // 1. Last log's mood (highest weight: 50%)
+  // 2. Current journal's average mood (medium weight: 30%)
+  // 3. Weekly mood across all journals (base weight: 20%)
+  const weightedValence = useMemo(() => {
+    const LAST_LOG_WEIGHT = 0.5;
+    const JOURNAL_WEIGHT = 0.3;
+    const WEEKLY_WEIGHT = 0.2;
+
+    // 1. Last log's mood (highest weight)
+    const lastLogValence = logEntries.length > 0 
+      ? emotionToValence(logEntries[logEntries.length - 1].emotion)
+      : 0;
+
+    // 2. Current journal's average mood
+    const journalValence = logEntries.length > 0
+      ? logEntries.reduce((sum, e) => sum + emotionToValence(e.emotion), 0) / logEntries.length
+      : 0;
+
+    // 3. Weekly mood from all journals (base)
+    const weeklyValence = allMoments.length > 0
+      ? allMoments.reduce((sum, m) => sum + emotionToValence(m.emotion), 0) / allMoments.length
+      : 0;
+
+    // Weighted combination
+    return lastLogValence * LAST_LOG_WEIGHT + journalValence * JOURNAL_WEIGHT + weeklyValence * WEEKLY_WEIGHT;
+  }, [logEntries, allMoments]);
+
+  // Blend typing speed into entropy for immediate responsiveness
+  // Also blend hovered moment's emotional state when hovering
+  // Apply idle effects when user stops typing
+  const liveBeingState = useMemo(() => {
+    if (!beingState) return beingState;
     
     // When hovering a moment, derive emotional state from the moment's emotion
     if (hoveredMoment) {
@@ -219,23 +250,6 @@ const IndexContent = () => {
       
       const emotionValues = emotionMap[hoveredMoment.emotion.toLowerCase()] || { valence: 0.5, arousal: 0.5 };
       
-      // Parse hue from color
-      let hoverHue = 60;
-      if (hoveredMoment.color.startsWith('#')) {
-        const hex = hoveredMoment.color.slice(1);
-        const r = parseInt(hex.slice(0, 2), 16) / 255;
-        const g = parseInt(hex.slice(2, 4), 16) / 255;
-        const b = parseInt(hex.slice(4, 6), 16) / 255;
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        if (max !== min) {
-          const d = max - min;
-          if (max === r) hoverHue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-          else if (max === g) hoverHue = ((b - r) / d + 2) * 60;
-          else hoverHue = ((r - g) / d + 4) * 60;
-        }
-      }
-      
       // Return a state blended toward the hovered moment's emotion
       return {
         ...beingState,
@@ -246,15 +260,14 @@ const IndexContent = () => {
       };
     }
     
-    // Get valence from detected persona state (mood-based)
-    const detectedValence = personaValenceMap[personaState.toLowerCase()] ?? 0;
+    // Get valence from detected persona state (current typing mood)
+    const detectedValence = emotionToValence(personaState);
     
     // Calculate idle dampening effects
-    // Idle effects gradually increase over 30 seconds
     const idleFactor = Math.min(idleTime / 30, 1); // 0 to 1 over 30 seconds
-    const idleArousalReduction = idleFactor * 0.4; // Reduce arousal up to 0.4
-    const idleEntropyReduction = idleFactor * 0.3; // Reduce entropy up to 0.3
-    const idleCuriosityBoost = idleFactor * 0.2; // Slight curiosity boost when contemplating
+    const idleArousalReduction = idleFactor * 0.4;
+    const idleEntropyReduction = idleFactor * 0.3;
+    const idleCuriosityBoost = idleFactor * 0.2;
     
     // Normal typing speed effects when not hovering
     const typingEntropyBoost = Math.min(typingSpeed / 15, 0.4);
@@ -265,9 +278,12 @@ const IndexContent = () => {
     const newArousal = Math.max(0.1, Math.min(beingState.A + typingArousalBoost - idleArousalReduction, 1));
     const newCuriosity = Math.min(beingState.C + idleCuriosityBoost, 1);
     
-    // Use detected valence when typing, drift toward neutral when idle
-    // Blend between detected valence and neutral based on idle factor
-    const newValence = detectedValence * (1 - idleFactor * 0.5);
+    // Weighted valence: blend detected mood with historical weighted valence
+    // When typing, give more weight to current detected mood
+    // When idle, rely more on historical weighted valence
+    const typingWeight = isTyping ? 0.6 : 0.2;
+    const historicalWeight = 1 - typingWeight;
+    const newValence = detectedValence * typingWeight + weightedValence * historicalWeight;
     
     return {
       ...beingState,
@@ -276,7 +292,7 @@ const IndexContent = () => {
       C: newCuriosity,
       V: newValence,
     };
-  }, [beingState, typingSpeed, hoveredMoment, idleTime, personaState]);
+  }, [beingState, typingSpeed, hoveredMoment, idleTime, personaState, weightedValence, isTyping]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {
