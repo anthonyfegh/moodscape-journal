@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.summarize-entry]
 verify_jwt = false
+
+[functions.analyze-being-state]
+verify_jwt = false

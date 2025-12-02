@@ -20,6 +20,7 @@ import { Card } from "@/components/ui/card";
 import { getTypeConfig } from "@/lib/journalTypeConfig";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BeingState, createInitialState } from "@/consciousness";
 
 interface AIReflection {
   id: string;
@@ -75,6 +76,76 @@ const IndexContent = () => {
   const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
   const [highlightedMomentId, setHighlightedMomentId] = useState<string | null>(null);
   const momentRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [beingState, setBeingState] = useState<BeingState>(createInitialState());
+  const beingStateTimeoutRef = useRef<NodeJS.Timeout>();
+  const [allMoments, setAllMoments] = useState<Array<{ text: string; emotion: string; color: string; timestamp: string }>>([]);
+
+  // Analyze being state based on journal content
+  const analyzeBeingState = useCallback(async (currentText: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-being-state", {
+        body: {
+          allJournalsMoments: allMoments,
+          currentJournalMoments: logEntries.map(e => ({
+            text: e.text,
+            emotion: e.emotion,
+            color: e.color,
+            timestamp: e.timestamp.toISOString()
+          })),
+          currentText,
+          journalType,
+        },
+      });
+
+      if (!error && data?.beingState) {
+        setBeingState(data.beingState);
+      }
+    } catch (err) {
+      console.error("Error analyzing being state:", err);
+    }
+  }, [allMoments, logEntries, journalType]);
+
+  // Load all moments from all journals for baseline being state
+  useEffect(() => {
+    const loadAllMoments = async () => {
+      try {
+        // Get all journals
+        const journals = await journalStorage.getJournals();
+        const moments: Array<{ text: string; emotion: string; color: string; timestamp: string }> = [];
+        
+        for (const journal of journals) {
+          const subJournals = await journalStorage.getSubJournals(journal.id);
+          for (const subJournal of subJournals) {
+            const subMoments = await journalStorage.getMoments(subJournal.id);
+            moments.push(...subMoments.map(m => ({
+              text: m.text,
+              emotion: m.emotion,
+              color: m.color,
+              timestamp: m.timestamp
+            })));
+          }
+        }
+        
+        setAllMoments(moments);
+        
+        // Initial being state analysis
+        if (moments.length > 0) {
+          analyzeBeingState("");
+        }
+      } catch (err) {
+        console.error("Error loading all moments:", err);
+      }
+    };
+    
+    loadAllMoments();
+  }, []);
+
+  // Re-analyze being state when log entries change
+  useEffect(() => {
+    if (logEntries.length > 0) {
+      analyzeBeingState(text);
+    }
+  }, [logEntries.length]);
 
   // Load journal and create default sub-journal if needed
   useEffect(() => {
@@ -209,6 +280,18 @@ const IndexContent = () => {
     // Clear any pending guidance call
     if (guidanceTimeoutRef.current) {
       clearTimeout(guidanceTimeoutRef.current);
+    }
+
+    // Clear any pending being state analysis
+    if (beingStateTimeoutRef.current) {
+      clearTimeout(beingStateTimeoutRef.current);
+    }
+
+    // Debounced being state analysis (1.5 seconds after typing)
+    if (newText.trim().length > 10) {
+      beingStateTimeoutRef.current = setTimeout(() => {
+        analyzeBeingState(newText);
+      }, 1500);
     }
 
     // Set new typing timeout (2.5 seconds of inactivity)
@@ -706,6 +789,7 @@ const IndexContent = () => {
           isTyping={isTyping}
           onClick={handleAvatarClick}
           guidance={guidance}
+          beingState={beingState}
         />
 
         {/* Header with back button and sidebar toggle */}
