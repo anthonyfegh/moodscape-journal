@@ -16,9 +16,11 @@ const BeingConversation = () => {
   const [beingState, setBeingState] = useState<BeingState>(createInitialState());
   const [message, setMessage] = useState("");
   const [phase, setPhase] = useState<ConversationPhase>("idle");
+  const [fullResponse, setFullResponse] = useState("");
   const [displayedResponse, setDisplayedResponse] = useState("");
   const [lastUserMessage, setLastUserMessage] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const typewriterRef = useRef<NodeJS.Timeout | null>(null);
   
   const {
     messages,
@@ -37,19 +39,51 @@ const BeingConversation = () => {
     }
   }, [user?.id, loadConversationHistory]);
 
-  // Track the latest being response for display
+  // Track the latest being response and trigger typewriter
   useEffect(() => {
     const lastBeingMessage = [...messages].reverse().find(m => m.role === "being");
-    if (lastBeingMessage?.content && phase === "responding") {
-      setDisplayedResponse(lastBeingMessage.content);
+    if (lastBeingMessage?.content && phase === "responding" && lastBeingMessage.content !== fullResponse) {
+      setFullResponse(lastBeingMessage.content);
+      setDisplayedResponse("");
     }
-  }, [messages, phase]);
+  }, [messages, phase, fullResponse]);
+
+  // Typewriter effect - word by word
+  useEffect(() => {
+    if (!fullResponse || phase !== "responding") return;
+    
+    const words = fullResponse.split(" ");
+    let currentIndex = 0;
+    
+    // Clear any existing typewriter
+    if (typewriterRef.current) {
+      clearInterval(typewriterRef.current);
+    }
+    
+    typewriterRef.current = setInterval(() => {
+      if (currentIndex < words.length) {
+        setDisplayedResponse(words.slice(0, currentIndex + 1).join(" "));
+        currentIndex++;
+      } else {
+        if (typewriterRef.current) {
+          clearInterval(typewriterRef.current);
+        }
+        // Typewriter done, enter reflecting phase
+        setPhase("reflecting");
+      }
+    }, 80); // Speed: 80ms per word
+    
+    return () => {
+      if (typewriterRef.current) {
+        clearInterval(typewriterRef.current);
+      }
+    };
+  }, [fullResponse, phase]);
 
   // Phase transitions based on loading state
   useEffect(() => {
     if (isRecalling) {
       setPhase("processing");
-      // Being recalls memories — increase attachment
       setBeingState(prev => ({
         ...prev,
         A: Math.min(1, prev.A + 0.15),
@@ -57,17 +91,12 @@ const BeingConversation = () => {
       }));
     } else if (isLoading && !isRecalling) {
       setPhase("responding");
-    } else if (!isLoading && phase === "responding") {
-      // Finished responding — enter reflection
-      setPhase("reflecting");
-      setTimeout(() => setPhase("idle"), 8000);
     }
-  }, [isLoading, isRecalling, phase]);
+  }, [isLoading, isRecalling]);
 
   // Update being state based on phase
   useEffect(() => {
     if (phase === "absorbing") {
-      // Absorbing user's words — heightened sensitivity
       setBeingState(prev => ({
         ...prev,
         A: Math.min(1, prev.A + 0.2),
@@ -75,13 +104,15 @@ const BeingConversation = () => {
         C: Math.min(1, prev.C + 0.15),
       }));
     } else if (phase === "reflecting") {
-      // Settling after exchange
       setBeingState(prev => ({
         ...prev,
         A: Math.max(0.2, prev.A - 0.1),
         I: Math.min(1, prev.I + 0.05),
         U: Math.min(1, prev.U + 0.03),
       }));
+      // Return to idle after reflection
+      const timer = setTimeout(() => setPhase("idle"), 6000);
+      return () => clearTimeout(timer);
     }
   }, [phase]);
 
@@ -92,11 +123,10 @@ const BeingConversation = () => {
     setLastUserMessage(content);
     setMessage("");
     setDisplayedResponse("");
+    setFullResponse("");
     
-    // Phase: absorbing
     setPhase("absorbing");
     
-    // Brief absorption animation before sending
     setTimeout(async () => {
       await sendMessage(content);
     }, 1200);
@@ -125,16 +155,28 @@ const BeingConversation = () => {
     return "present";
   };
 
+  // Being position: shifts right when responding/reflecting
+  const isBeingShifted = phase === "responding" || phase === "reflecting";
+
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
-      {/* Full-screen Being — the center of everything */}
-      <div className="absolute inset-0">
+      {/* Being container — animates position */}
+      <motion.div 
+        className="absolute inset-0"
+        animate={{
+          x: isBeingShifted ? "20%" : "0%",
+        }}
+        transition={{
+          duration: 1.2,
+          ease: [0.22, 1, 0.36, 1], // smooth easing
+        }}
+      >
         <BeingCanvas 
           renderState={renderState} 
           className="w-full h-full"
           enableControls={false}
         />
-      </div>
+      </motion.div>
 
       {/* Absorption effect — user's words flowing into the being */}
       <AnimatePresence>
@@ -182,40 +224,43 @@ const BeingConversation = () => {
         )}
       </AnimatePresence>
 
-      {/* Being's response — emerges like breath, not a chat bubble */}
+      {/* Being's response — appears on the left as being shifts right */}
       <AnimatePresence>
         {(phase === "responding" || phase === "reflecting") && displayedResponse && (
           <motion.div
-            className="absolute inset-x-0 bottom-32 flex justify-center pointer-events-none px-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2 max-w-md pointer-events-none"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <motion.div
-              className="max-w-2xl text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 1 }}
-            >
-              <p className="text-white/90 text-lg md:text-xl leading-relaxed font-light">
-                {displayedResponse}
-              </p>
-              
-              {/* Subtle mood indicator */}
-              <motion.p
-                className="text-white/30 text-xs mt-4 tracking-wider"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                feeling {getBeingMood()}
-              </motion.p>
-            </motion.div>
+            <p className="text-white/90 text-lg md:text-xl leading-relaxed font-light">
+              {displayedResponse}
+              {phase === "responding" && (
+                <motion.span
+                  className="inline-block w-0.5 h-5 bg-white/60 ml-1 align-middle"
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                />
+              )}
+            </p>
+            
+            {/* Mood indicator appears after typing done */}
+            <AnimatePresence>
+              {phase === "reflecting" && (
+                <motion.p
+                  className="text-white/30 text-xs mt-4 tracking-wider"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  feeling {getBeingMood()}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
-
 
       {/* Input textarea — always at bottom */}
       <div className="absolute inset-x-0 bottom-0 p-6">
