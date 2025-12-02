@@ -5,33 +5,33 @@ import { BeingState, RenderState } from './state';
  * No assumptions about rendering backend — just normalized values
  */
 export const mapStateToRender = (state: BeingState): RenderState => {
-  // Core radius: grows with Knowledge and Integration
-  // Range: 0.3 to 1.0
-  const coreRadius = 0.3 + 0.7 * ((state.K + state.I) / 2);
+  // Core radius: grows with Knowledge and Integration - MORE DRAMATIC range
+  // Range: 0.4 to 1.3 (was 0.3 to 1.0)
+  const coreRadius = 0.4 + 0.9 * ((state.K + state.I) / 2);
 
-  // Entropy level: direct mapping
-  // Range: 0 to 1
-  const entropyLevel = state.H;
+  // Entropy level: amplified for more visible deformation
+  // Range: 0 to 1.5 (amplified)
+  const entropyLevel = state.H * 1.5;
 
-  // Color hue: mapped from Valence
-  // Negative valence → cooler hues (blue-purple: 200-280)
-  // Positive valence → warmer hues (orange-yellow: 30-60)
-  // Neutral → green (120)
+  // Color hue: mapped from Valence - WIDER hue range
+  // Negative valence → cooler hues (blue-purple: 180-300)
+  // Positive valence → warmer hues (red-orange: 0-60)
+  // Neutral → green-cyan (120)
   const colorHue = state.V < 0 
-    ? 200 + 80 * (state.V + 1) / 2  // -1 to 0 → 200 to 280
-    : 120 - 90 * state.V;            // 0 to 1 → 120 to 30
+    ? 180 + 120 * Math.abs(state.V)  // -1 to 0 → 300 to 180
+    : 120 - 120 * state.V;            // 0 to 1 → 120 to 0
 
-  // Glow: mapped from Arousal
-  // Range: 0.2 to 1.0
-  const glow = 0.2 + 0.8 * state.A;
+  // Glow: mapped from Arousal - FULL range
+  // Range: 0.1 to 1.2 (was 0.2 to 1.0)
+  const glow = 0.1 + 1.1 * state.A;
 
-  // Particle activity: mapped from Curiosity
-  // Range: 0 to 1
-  const particleActivity = state.C;
+  // Particle activity: amplified from Curiosity
+  // Range: 0 to 1.3
+  const particleActivity = state.C * 1.3;
 
-  // Connection density: mapped from Attachment
-  // Range: 0 to 1
-  const connectionDensity = state.U;
+  // Connection density: amplified from Attachment
+  // Range: 0 to 1.2
+  const connectionDensity = state.U * 1.2;
 
   return {
     coreRadius,
