@@ -21,9 +21,10 @@ interface LogEntry {
 interface JournalSidebarProps {
   logEntries: LogEntry[];
   onMomentClick: (id: string) => void;
+  onMomentHover?: (entry: LogEntry | null) => void;
 }
 
-export function JournalSidebar({ logEntries, onMomentClick }: JournalSidebarProps) {
+export function JournalSidebar({ logEntries, onMomentClick, onMomentHover }: JournalSidebarProps) {
   const { open } = useSidebar();
 
   return (
@@ -48,6 +49,8 @@ export function JournalSidebar({ logEntries, onMomentClick }: JournalSidebarProp
                     background: `linear-gradient(135deg, rgba(255,255,255,0.1), ${entry.color}20)`,
                   }}
                   onClick={() => onMomentClick(entry.id)}
+                  onMouseEnter={() => onMomentHover?.(entry)}
+                  onMouseLeave={() => onMomentHover?.(null)}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span

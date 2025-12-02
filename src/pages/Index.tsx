@@ -84,6 +84,7 @@ const IndexContent = () => {
   const lastTextLengthRef = useRef(0);
   const typingSpeedIntervalRef = useRef<NodeJS.Timeout>();
   const charCountRef = useRef(0);
+  const [hoveredMoment, setHoveredMoment] = useState<LogEntry | null>(null);
 
   // Analyze being state based on journal content
   const analyzeBeingState = useCallback(async (currentText: string) => {
@@ -159,15 +160,61 @@ const IndexContent = () => {
   }, []);
 
   // Blend typing speed into entropy for immediate responsiveness
+  // Also blend hovered moment's emotional state when hovering
   const liveBeingState = useMemo(() => {
     if (!beingState) return beingState;
     
-    // Typing speed affects entropy: faster typing = higher entropy (more chaotic energy)
-    // Normal typing: 2-5 chars/sec, fast: 5-10, very fast: 10+
-    const typingEntropyBoost = Math.min(typingSpeed / 15, 0.4); // Max 0.4 boost from typing
+    // When hovering a moment, derive emotional state from the moment's emotion
+    if (hoveredMoment) {
+      // Map emotion to valence and arousal
+      const emotionMap: Record<string, { valence: number; arousal: number }> = {
+        joyful: { valence: 0.8, arousal: 0.7 },
+        happy: { valence: 0.7, arousal: 0.6 },
+        peaceful: { valence: 0.6, arousal: 0.2 },
+        calm: { valence: 0.5, arousal: 0.2 },
+        reflective: { valence: 0.4, arousal: 0.3 },
+        contemplative: { valence: 0.4, arousal: 0.3 },
+        melancholic: { valence: 0.2, arousal: 0.3 },
+        sad: { valence: 0.1, arousal: 0.3 },
+        anxious: { valence: 0.2, arousal: 0.8 },
+        restless: { valence: 0.3, arousal: 0.7 },
+        intense: { valence: 0.3, arousal: 0.9 },
+        angry: { valence: 0.1, arousal: 0.9 },
+      };
+      
+      const emotionValues = emotionMap[hoveredMoment.emotion.toLowerCase()] || { valence: 0.5, arousal: 0.5 };
+      
+      // Parse hue from color
+      let hoverHue = 60;
+      if (hoveredMoment.color.startsWith('#')) {
+        const hex = hoveredMoment.color.slice(1);
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        if (max !== min) {
+          const d = max - min;
+          if (max === r) hoverHue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+          else if (max === g) hoverHue = ((b - r) / d + 2) * 60;
+          else hoverHue = ((r - g) / d + 4) * 60;
+        }
+      }
+      
+      // Return a state blended toward the hovered moment's emotion
+      return {
+        ...beingState,
+        V: emotionValues.valence * 2 - 1, // Map 0-1 to -1 to 1
+        A: emotionValues.arousal,
+        C: 0.8, // High curiosity when exploring past moments
+        U: 0.7, // Increased attachment to memory
+      };
+    }
+    
+    // Normal typing speed effects when not hovering
+    const typingEntropyBoost = Math.min(typingSpeed / 15, 0.4);
     const newEntropy = Math.min(beingState.H + typingEntropyBoost, 1);
     
-    // Also boost arousal slightly with typing speed
     const typingArousalBoost = Math.min(typingSpeed / 20, 0.2);
     const newArousal = Math.min(beingState.A + typingArousalBoost, 1);
     
@@ -176,7 +223,7 @@ const IndexContent = () => {
       H: newEntropy,
       A: newArousal,
     };
-  }, [beingState, typingSpeed]);
+  }, [beingState, typingSpeed, hoveredMoment]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {
@@ -1243,7 +1290,11 @@ const IndexContent = () => {
         </div>
       </div>
 
-      <JournalSidebar logEntries={logEntries} onMomentClick={(id) => handleEditMoment(id, true)} />
+      <JournalSidebar 
+        logEntries={logEntries} 
+        onMomentClick={(id) => handleEditMoment(id, true)} 
+        onMomentHover={setHoveredMoment}
+      />
     </motion.div>
   );
 };
