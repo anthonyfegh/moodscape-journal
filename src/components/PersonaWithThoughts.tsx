@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BeingCanvas } from "@/components/being/BeingCanvas";
-import { RenderState } from "@/consciousness";
+import { RenderState, BeingState, getRenderState } from "@/consciousness";
 
 interface LogEntry {
   id: string;
@@ -20,17 +20,61 @@ interface PersonaWithThoughtsProps {
   isTyping: boolean;
   onClick?: () => void;
   guidance?: string;
+  beingState?: BeingState; // AI-driven being state
 }
 
-export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping, onClick, guidance }: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ 
+  isThinking, 
+  recentWords, 
+  moodColor, 
+  personaState, 
+  logEntries, 
+  isTyping, 
+  onClick, 
+  guidance,
+  beingState 
+}: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
 
-  // Derive render state from mood color and typing state
+  // Derive render state from AI being state or fallback to basic calculation
   const renderState: RenderState = useMemo(() => {
-    // Parse hue from moodColor (expected format: hsl(H, S%, L%))
-    const hueMatch = moodColor.match(/hsl\((\d+)/);
-    const hue = hueMatch ? parseInt(hueMatch[1]) : 60;
+    if (beingState) {
+      // Use the consciousness engine to map state to render
+      const baseRenderState = getRenderState(beingState);
+      
+      // Apply typing boost for immediate responsiveness
+      if (isTyping) {
+        return {
+          ...baseRenderState,
+          glow: Math.min(baseRenderState.glow * 1.3, 1.2),
+          particleActivity: Math.min(baseRenderState.particleActivity * 1.2, 1.3),
+          entropyLevel: Math.min(baseRenderState.entropyLevel * 1.2, 1.5),
+        };
+      }
+      return baseRenderState;
+    }
+    
+    // Fallback: Parse hue from moodColor (expected format: hex or hsl)
+    let hue = 60;
+    if (moodColor.startsWith('#')) {
+      // Convert hex to hue
+      const hex = moodColor.slice(1);
+      const r = parseInt(hex.slice(0, 2), 16) / 255;
+      const g = parseInt(hex.slice(2, 4), 16) / 255;
+      const b = parseInt(hex.slice(4, 6), 16) / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      if (max !== min) {
+        const d = max - min;
+        if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+        else if (max === g) hue = ((b - r) / d + 2) * 60;
+        else hue = ((r - g) / d + 4) * 60;
+      }
+    } else {
+      const hueMatch = moodColor.match(/hsl\((\d+)/);
+      hue = hueMatch ? parseInt(hueMatch[1]) : 60;
+    }
     
     return {
       coreRadius: isTyping ? 0.8 : 0.6,
@@ -40,7 +84,7 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
       particleActivity: isTyping ? 0.7 : 0.4,
       connectionDensity: logEntries.length > 0 ? Math.min(logEntries.length * 0.1, 0.8) : 0.3,
     };
-  }, [moodColor, isTyping, logEntries.length]);
+  }, [beingState, moodColor, isTyping, logEntries.length]);
 
   useEffect(() => {
     if (recentWords.length > 0) {
