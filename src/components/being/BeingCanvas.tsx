@@ -52,10 +52,7 @@ export const BeingCanvas = ({
           <ParticleSystem renderState={smoothedState} />
           
           {/* Connection web */}
-          <Connections 
-            renderState={smoothedState} 
-            particleCount={Math.floor(50 + smoothedState.particleActivity * 100)} 
-          />
+          <Connections renderState={smoothedState} />
         </Suspense>
         
         {/* Optional orbit controls for debugging */}

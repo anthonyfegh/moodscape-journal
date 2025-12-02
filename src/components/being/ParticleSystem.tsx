@@ -7,6 +7,9 @@ interface ParticleSystemProps {
   renderState: RenderState;
 }
 
+// Fixed particle count to avoid buffer resize errors
+const MAX_PARTICLES = 150;
+
 /**
  * Orbiting particles representing curiosity and external connections
  */
@@ -14,14 +17,12 @@ export const ParticleSystem = ({ renderState }: ParticleSystemProps) => {
   const particlesRef = useRef<THREE.Points>(null);
   const timeRef = useRef(0);
 
-  // Generate particle positions
-  const particleCount = Math.floor(50 + renderState.particleActivity * 100);
-  
+  // Generate particle positions with fixed count
   const { positions, velocities } = useMemo(() => {
-    const pos = new Float32Array(particleCount * 3);
-    const vel = new Float32Array(particleCount * 3);
+    const pos = new Float32Array(MAX_PARTICLES * 3);
+    const vel = new Float32Array(MAX_PARTICLES * 3);
     
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < MAX_PARTICLES; i++) {
       const i3 = i * 3;
       const radius = 2 + Math.random() * 2;
       const theta = Math.random() * Math.PI * 2;
@@ -38,16 +39,7 @@ export const ParticleSystem = ({ renderState }: ParticleSystemProps) => {
     }
     
     return { positions: pos, velocities: vel };
-  }, [particleCount]);
-
-  // Particle color based on consciousness state
-  const particleColor = useMemo(() => {
-    const h = renderState.colorHue / 360;
-    const s = 0.5;
-    const l = 0.6 + renderState.glow * 0.2;
-    
-    return new THREE.Color().setHSL(h, s, l);
-  }, [renderState.colorHue, renderState.glow]);
+  }, []);
 
   useFrame((state, delta) => {
     if (particlesRef.current) {
@@ -58,7 +50,7 @@ export const ParticleSystem = ({ renderState }: ParticleSystemProps) => {
       const speed = 0.3 + renderState.particleActivity * 0.7;
       const orbitDistance = 1.5 + renderState.coreRadius * 1.5;
       
-      for (let i = 0; i < particleCount; i++) {
+      for (let i = 0; i < MAX_PARTICLES; i++) {
         const i3 = i * 3;
         
         // Orbital motion with noise
@@ -78,12 +70,18 @@ export const ParticleSystem = ({ renderState }: ParticleSystemProps) => {
     }
   });
 
+  // Particle color based on consciousness state
+  const h = renderState.colorHue / 360;
+  const s = 0.5;
+  const l = 0.6 + renderState.glow * 0.2;
+  const particleColor = new THREE.Color().setHSL(h, s, l);
+
   return (
     <points ref={particlesRef}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={particleCount}
+          count={MAX_PARTICLES}
           array={positions}
           itemSize={3}
         />
@@ -92,7 +90,7 @@ export const ParticleSystem = ({ renderState }: ParticleSystemProps) => {
         size={0.05 * (0.5 + renderState.glow * 0.5)}
         color={particleColor}
         transparent
-        opacity={0.6 + renderState.particleActivity * 0.3}
+        opacity={0.3 + renderState.particleActivity * 0.5}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
       />
