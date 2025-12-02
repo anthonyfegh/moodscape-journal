@@ -22,16 +22,7 @@ interface PersonaWithThoughtsProps {
   guidance?: string;
 }
 
-export const PersonaWithThoughts = ({
-  isThinking,
-  recentWords,
-  moodColor,
-  personaState,
-  logEntries,
-  isTyping,
-  onClick,
-  guidance,
-}: PersonaWithThoughtsProps) => {
+export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping, onClick, guidance }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
 
@@ -40,7 +31,7 @@ export const PersonaWithThoughts = ({
     // Parse hue from moodColor (expected format: hsl(H, S%, L%))
     const hueMatch = moodColor.match(/hsl\((\d+)/);
     const hue = hueMatch ? parseInt(hueMatch[1]) : 60;
-
+    
     return {
       coreRadius: isTyping ? 0.8 : 0.6,
       entropyLevel: isTyping ? 0.6 : 0.3,
@@ -55,13 +46,13 @@ export const PersonaWithThoughts = ({
     if (recentWords.length > 0) {
       setDisplayWords((prev) => {
         const lastWord = recentWords[recentWords.length - 1];
-
+        
         // Only add if it's a new unique word
         if (!prev.includes(lastWord)) {
           // Keep last 10 unique words
           return [...prev.slice(-9), lastWord];
         }
-
+        
         return prev;
       });
     }
@@ -99,8 +90,14 @@ export const PersonaWithThoughts = ({
 
             {/* Thought bubble tail */}
             <div className="absolute -bottom-2 right-8 flex gap-1">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: moodColor, opacity: 0.6 }} />
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: moodColor, opacity: 0.4 }} />
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: moodColor, opacity: 0.6 }}
+              />
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: moodColor, opacity: 0.4 }}
+              />
             </div>
           </motion.div>
         )}
@@ -114,8 +111,8 @@ export const PersonaWithThoughts = ({
           y: isTyping ? [0, -5, 0] : 0,
         }}
         transition={{
-          scale: {
-            duration: isListening ? 0.4 : 1.8,
+          scale: { 
+            duration: isListening ? 0.4 : 1.8, 
             ease: "easeInOut",
             repeat: isTyping ? Infinity : 0,
           },
@@ -128,20 +125,23 @@ export const PersonaWithThoughts = ({
         <motion.div
           animate={{
             filter: isTyping ? "brightness(1.1)" : isListening ? "brightness(1.4)" : "brightness(1)",
-            boxShadow: isTyping
+            boxShadow: isTyping 
               ? `0 0 60px ${moodColor}70, 0 0 30px ${moodColor}50, inset 0 0 40px ${moodColor}30`
               : isListening
-                ? `0 0 100px ${moodColor}, 0 0 60px ${moodColor}80, inset 0 0 50px ${moodColor}40`
-                : `0 0 40px ${moodColor}50, inset 0 0 30px ${moodColor}20`,
+              ? `0 0 100px ${moodColor}, 0 0 60px ${moodColor}80, inset 0 0 50px ${moodColor}40`
+              : `0 0 40px ${moodColor}50, inset 0 0 30px ${moodColor}20`,
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="w-36 h-36 rounded-full overflow-hidden border-4 transition-all duration-700 hover:scale-105"
           style={{
             borderColor: moodColor,
-            background: `radial-gradient(circle at center, ${moodColor}15 0%, transparent 40%)`,
+            background: `radial-gradient(circle at center, ${moodColor}15 0%, transparent 70%)`,
           }}
         >
-          <BeingCanvas renderState={renderState} className="w-full h-full" />
+          <BeingCanvas 
+            renderState={renderState} 
+            className="w-full h-full"
+          />
         </motion.div>
 
         {/* Status indicator */}
