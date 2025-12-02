@@ -915,6 +915,7 @@ const IndexContent = () => {
           onClick={handleAvatarClick}
           guidance={guidance}
           beingState={liveBeingState}
+          hoveredMomentColor={hoveredMoment?.color}
         />
 
         {/* Header with back button and sidebar toggle */}

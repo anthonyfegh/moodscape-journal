@@ -21,6 +21,7 @@ interface PersonaWithThoughtsProps {
   onClick?: () => void;
   guidance?: string;
   beingState?: BeingState; // AI-driven being state
+  hoveredMomentColor?: string; // Color override when hovering a moment
 }
 
 export const PersonaWithThoughts = ({ 
@@ -32,7 +33,8 @@ export const PersonaWithThoughts = ({
   isTyping, 
   onClick, 
   guidance,
-  beingState 
+  beingState,
+  hoveredMomentColor,
 }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
@@ -53,40 +55,59 @@ export const PersonaWithThoughts = ({
 
   // Derive render state from AI being state or fallback to basic calculation
   const renderState: RenderState = useMemo(() => {
+    // Helper to parse hex color to hue
+    const parseHexToHue = (hexColor: string): number => {
+      let hue = 60;
+      if (hexColor.startsWith('#')) {
+        const hex = hexColor.slice(1);
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        if (max !== min) {
+          const d = max - min;
+          if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+          else if (max === g) hue = ((b - r) / d + 2) * 60;
+          else hue = ((r - g) / d + 4) * 60;
+        }
+      }
+      return hue;
+    };
+
     if (beingState) {
       // Use the consciousness engine to map state to render
       const baseRenderState = getRenderState(beingState);
+      
+      // Override colorHue if hovering a moment
+      let finalColorHue = baseRenderState.colorHue;
+      if (hoveredMomentColor) {
+        finalColorHue = parseHexToHue(hoveredMomentColor);
+      }
       
       // Apply typing boost for immediate responsiveness
       if (isTyping) {
         return {
           ...baseRenderState,
+          colorHue: finalColorHue,
           glow: Math.min(baseRenderState.glow * 1.3, 1.2),
           particleActivity: Math.min(baseRenderState.particleActivity * 1.2, 1.3),
           entropyLevel: Math.min(baseRenderState.entropyLevel * 1.2, 1.5),
         };
       }
-      return baseRenderState;
+      return {
+        ...baseRenderState,
+        colorHue: finalColorHue,
+      };
     }
     
-    // Fallback: Parse hue from moodColor (expected format: hex or hsl)
+    // Fallback: Parse hue from moodColor or hoveredMomentColor
+    const colorToUse = hoveredMomentColor || moodColor;
     let hue = 60;
-    if (moodColor.startsWith('#')) {
-      // Convert hex to hue
-      const hex = moodColor.slice(1);
-      const r = parseInt(hex.slice(0, 2), 16) / 255;
-      const g = parseInt(hex.slice(2, 4), 16) / 255;
-      const b = parseInt(hex.slice(4, 6), 16) / 255;
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      if (max !== min) {
-        const d = max - min;
-        if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-        else if (max === g) hue = ((b - r) / d + 2) * 60;
-        else hue = ((r - g) / d + 4) * 60;
-      }
+    if (colorToUse.startsWith('#')) {
+      hue = parseHexToHue(colorToUse);
     } else {
-      const hueMatch = moodColor.match(/hsl\((\d+)/);
+      const hueMatch = colorToUse.match(/hsl\((\d+)/);
       hue = hueMatch ? parseInt(hueMatch[1]) : 60;
     }
     
@@ -98,7 +119,7 @@ export const PersonaWithThoughts = ({
       particleActivity: isTyping ? 0.7 : 0.4,
       connectionDensity: logEntries.length > 0 ? Math.min(logEntries.length * 0.1, 0.8) : 0.3,
     };
-  }, [beingState, moodColor, isTyping, logEntries.length]);
+  }, [beingState, moodColor, isTyping, logEntries.length, hoveredMomentColor]);
 
   useEffect(() => {
     if (recentWords.length > 0) {
