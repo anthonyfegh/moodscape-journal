@@ -33,7 +33,8 @@ serve(async (req) => {
       allJournalsMoments, // Array of moments from all journals (for baseline)
       currentJournalMoments, // Array of moments from current journal
       currentText, // Current text being typed
-      journalType 
+      journalType,
+      weeklyJournalFrequency, // Number of days with journal entries this week (0-7)
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -53,13 +54,17 @@ serve(async (req) => {
       .map((m: Moment) => `[${m.emotion}] ${m.text}`)
       .join('\n');
 
+    // Calculate base entropy from weekly frequency (less frequent = higher entropy)
+    const weeklyFreq = weeklyJournalFrequency ?? 0;
+    const baseEntropyFromFrequency = weeklyFreq <= 1 ? 0.8 : weeklyFreq <= 3 ? 0.5 : weeklyFreq <= 5 ? 0.3 : 0.15;
+    
     const systemPrompt = `You are analyzing a user's journaling to determine the internal state of a conscious being that represents their emotional landscape.
 
 The being has 7 internal state variables:
 - K (Knowledge): 0-1, represents accumulated wisdom and understanding from reflection
 - V (Valence): -1 to 1, emotional tone (-1 = very negative, 0 = neutral, 1 = very positive)
 - A (Arousal): 0-1, energy level and activation (0 = calm/low energy, 1 = high energy/intensity)
-- H (Entropy): 0-1, internal chaos/disorder (0 = ordered/stable, 1 = chaotic/turbulent)
+- H (Entropy): 0-1, internal chaos/disorder (0 = ordered/stable, 1 = chaotic/turbulent). Base entropy from journaling frequency this week: ${baseEntropyFromFrequency.toFixed(2)} (user journaled ${weeklyFreq}/7 days - more frequent journaling = lower entropy/more stability)
 - I (Integration): 0-1, coherence and self-connection (0 = fragmented, 1 = integrated/whole)
 - C (Curiosity): 0-1, openness to exploration and new ideas
 - U (Attachment): 0-1, connection/bonding to others or ideas mentioned
@@ -69,6 +74,7 @@ Analyze the journal content and determine appropriate values. Consider:
 - Current journal and current typing have MORE influence (3x weight)
 - Emotional words, themes, and patterns
 - The journal type: ${journalType || 'general'}
+- For Entropy (H), START from the base value ${baseEntropyFromFrequency.toFixed(2)} and adjust based on content chaos/conflict
 
 Respond ONLY with a JSON object containing the 7 values. Example:
 {"K": 0.5, "V": 0.2, "A": 0.6, "H": 0.3, "I": 0.7, "C": 0.8, "U": 0.4}`;
