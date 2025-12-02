@@ -7,49 +7,70 @@ interface BlobCoreProps {
   renderState: RenderState;
 }
 
+// HSL to RGB conversion helper
+const hslToRgb = (h: number, s: number, l: number) => {
+  let r, g, b;
+  
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  
+  return new THREE.Color(r, g, b);
+};
+
 /**
  * Deformable blob core representing the conscious being
  * Uses custom GLSL shader for organic vertex displacement
+ * Colors derived from multiple consciousness state variables
  */
 export const BlobCore = ({ renderState }: BlobCoreProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
-  // HSL to RGB conversion
-  const blobColor = useMemo(() => {
+  // Primary color from colorHue (Valence-based)
+  const primaryColor = useMemo(() => {
     const h = renderState.colorHue / 360;
-    const s = 0.7; // Saturation
-    const l = 0.5 + renderState.glow * 0.2; // Lightness varies with glow
-    
-    const hslToRgb = (h: number, s: number, l: number) => {
-      let r, g, b;
-      
-      if (s === 0) {
-        r = g = b = l;
-      } else {
-        const hue2rgb = (p: number, q: number, t: number) => {
-          if (t < 0) t += 1;
-          if (t > 1) t -= 1;
-          if (t < 1/6) return p + (q - p) * 6 * t;
-          if (t < 1/2) return q;
-          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-          return p;
-        };
-        
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1/3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1/3);
-      }
-      
-      return new THREE.Color(r, g, b);
-    };
-    
+    const s = 0.6 + renderState.particleActivity * 0.3; // Curiosity affects saturation
+    const l = 0.45 + renderState.glow * 0.25; // Arousal affects lightness
     return hslToRgb(h, s, l);
-  }, [renderState.colorHue, renderState.glow]);
+  }, [renderState.colorHue, renderState.glow, renderState.particleActivity]);
 
-  // Custom shader material for organic deformation
+  // Secondary color - complementary shifted by entropy
+  const secondaryColor = useMemo(() => {
+    // Entropy shifts the hue toward a contrasting color
+    const hueShift = renderState.entropyLevel * 0.15; // Up to 54 degrees shift
+    const h = ((renderState.colorHue / 360) + hueShift) % 1;
+    const s = 0.5 + renderState.connectionDensity * 0.3; // Attachment affects saturation
+    const l = 0.5 + renderState.glow * 0.2;
+    return hslToRgb(h, s, l);
+  }, [renderState.colorHue, renderState.entropyLevel, renderState.connectionDensity, renderState.glow]);
+
+  // Accent color - triadic color based on curiosity
+  const accentColor = useMemo(() => {
+    // Curiosity creates a triadic accent
+    const hueShift = 0.33 * renderState.particleActivity; // Up to 120 degrees
+    const h = ((renderState.colorHue / 360) + hueShift) % 1;
+    const s = 0.7;
+    const l = 0.6;
+    return hslToRgb(h, s, l);
+  }, [renderState.colorHue, renderState.particleActivity]);
+
+  // Custom shader material for organic deformation with multi-color support
   const shaderMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
@@ -57,16 +78,22 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
         entropyLevel: { value: renderState.entropyLevel },
         coreRadius: { value: renderState.coreRadius },
         glow: { value: renderState.glow },
-        baseColor: { value: blobColor },
+        particleActivity: { value: renderState.particleActivity },
+        connectionDensity: { value: renderState.connectionDensity },
+        primaryColor: { value: primaryColor },
+        secondaryColor: { value: secondaryColor },
+        accentColor: { value: accentColor },
       },
       vertexShader: `
         uniform float time;
         uniform float entropyLevel;
         uniform float coreRadius;
+        uniform float particleActivity;
         varying vec3 vNormal;
         varying vec3 vPosition;
+        varying float vNoise;
         
-        // Simplex noise function (simplified)
+        // Simplex noise function
         vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
         vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -141,11 +168,14 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
           float noise2 = snoise(position * 3.0 + time * 0.5);
           float noise3 = snoise(position * 0.8 - time * 0.2);
           
+          // Pass noise to fragment shader for color variation
+          vNoise = noise1 * 0.5 + 0.5;
+          
           // Combine noise layers with entropy influence
           float displacement = (noise1 * 0.5 + noise2 * 0.3 + noise3 * 0.2) * entropyLevel * 0.4;
           
-          // Breathing pulsation based on core radius
-          float pulse = sin(time * 1.5) * 0.05 * coreRadius;
+          // Breathing pulsation with curiosity influence
+          float pulse = sin(time * (1.5 + particleActivity)) * 0.05 * coreRadius;
           
           // Apply displacement
           vec3 newPosition = position + normal * (displacement + pulse);
@@ -154,18 +184,42 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
         }
       `,
       fragmentShader: `
-        uniform vec3 baseColor;
+        uniform vec3 primaryColor;
+        uniform vec3 secondaryColor;
+        uniform vec3 accentColor;
         uniform float glow;
+        uniform float entropyLevel;
+        uniform float particleActivity;
+        uniform float connectionDensity;
+        uniform float time;
         varying vec3 vNormal;
         varying vec3 vPosition;
+        varying float vNoise;
         
         void main() {
           // Soft fresnel glow
           vec3 viewDirection = normalize(cameraPosition - vPosition);
           float fresnel = pow(1.0 - abs(dot(viewDirection, vNormal)), 2.0);
           
+          // Blend colors based on position and noise
+          // Primary dominates center, secondary at edges (entropy-driven)
+          float edgeFactor = fresnel * entropyLevel;
+          vec3 baseColor = mix(primaryColor, secondaryColor, edgeFactor);
+          
+          // Add accent color based on vertical position and curiosity
+          float verticalBlend = (vPosition.y + 1.0) * 0.5 * particleActivity;
+          baseColor = mix(baseColor, accentColor, verticalBlend * 0.3);
+          
+          // Noise-based color variation (entropy creates more variation)
+          float noiseColorBlend = vNoise * entropyLevel * 0.4;
+          baseColor = mix(baseColor, secondaryColor, noiseColorBlend);
+          
           // Atmospheric glow based on arousal
           vec3 glowColor = baseColor * (1.0 + fresnel * glow * 2.0);
+          
+          // Add subtle shimmer based on connection density
+          float shimmer = sin(time * 3.0 + vPosition.x * 10.0) * 0.1 * connectionDensity;
+          glowColor += vec3(shimmer);
           
           // Soft edges
           float alpha = 0.85 + fresnel * 0.15;
@@ -176,7 +230,7 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
       transparent: true,
       side: THREE.DoubleSide,
     });
-  }, [blobColor]);
+  }, [primaryColor, secondaryColor, accentColor]);
 
   // Update uniforms every frame
   useFrame((state, delta) => {
@@ -187,7 +241,11 @@ export const BlobCore = ({ renderState }: BlobCoreProps) => {
       material.uniforms.entropyLevel.value = renderState.entropyLevel;
       material.uniforms.coreRadius.value = renderState.coreRadius;
       material.uniforms.glow.value = renderState.glow;
-      material.uniforms.baseColor.value = blobColor;
+      material.uniforms.particleActivity.value = renderState.particleActivity;
+      material.uniforms.connectionDensity.value = renderState.connectionDensity;
+      material.uniforms.primaryColor.value = primaryColor;
+      material.uniforms.secondaryColor.value = secondaryColor;
+      material.uniforms.accentColor.value = accentColor;
       
       // Gentle rotation
       meshRef.current.rotation.y += delta * 0.05;
