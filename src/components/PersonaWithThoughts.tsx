@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import personaAvatar from "@/assets/persona-avatar.png";
+import { BeingCanvas } from "@/components/being/BeingCanvas";
+import { RenderState } from "@/consciousness";
 
 interface LogEntry {
   id: string;
@@ -24,7 +25,22 @@ interface PersonaWithThoughtsProps {
 export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, personaState, logEntries, isTyping, onClick, guidance }: PersonaWithThoughtsProps) => {
   const [displayWords, setDisplayWords] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
-  const [shouldBlink, setShouldBlink] = useState(false);
+
+  // Derive render state from mood color and typing state
+  const renderState: RenderState = useMemo(() => {
+    // Parse hue from moodColor (expected format: hsl(H, S%, L%))
+    const hueMatch = moodColor.match(/hsl\((\d+)/);
+    const hue = hueMatch ? parseInt(hueMatch[1]) : 60;
+    
+    return {
+      coreRadius: isTyping ? 0.8 : 0.6,
+      entropyLevel: isTyping ? 0.6 : 0.3,
+      colorHue: hue,
+      glow: isTyping ? 0.8 : 0.5,
+      particleActivity: isTyping ? 0.7 : 0.4,
+      connectionDensity: logEntries.length > 0 ? Math.min(logEntries.length * 0.1, 0.8) : 0.3,
+    };
+  }, [moodColor, isTyping, logEntries.length]);
 
   useEffect(() => {
     if (recentWords.length > 0) {
@@ -42,20 +58,7 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
     }
   }, [recentWords]);
 
-  // Blink animation when not typing
-  useEffect(() => {
-    if (isTyping) {
-      setShouldBlink(false);
-      return;
-    }
-
-    const blinkInterval = setInterval(() => {
-      setShouldBlink(true);
-      setTimeout(() => setShouldBlink(false), 180);
-    }, 3000 + Math.random() * 1500); // Random between 3-4.5 seconds
-
-    return () => clearInterval(blinkInterval);
-  }, [isTyping]);
+  // Removed blink animation - using 3D being instead
 
   const handleAvatarClick = () => {
     setIsListening(true);
@@ -134,20 +137,9 @@ export const PersonaWithThoughts = ({ isThinking, recentWords, moodColor, person
             borderColor: moodColor,
           }}
         >
-          <motion.img
-            src={personaAvatar}
-            alt="Reading Persona"
-            className="w-full h-full object-cover"
-            animate={{
-              scaleY: shouldBlink ? 0.05 : 1,
-            }}
-            transition={{
-              duration: 0.12,
-              ease: "easeInOut",
-            }}
-            style={{
-              transformOrigin: "center",
-            }}
+          <BeingCanvas 
+            renderState={renderState} 
+            className="w-full h-full"
           />
         </motion.div>
 
