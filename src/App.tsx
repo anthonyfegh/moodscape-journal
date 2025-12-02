@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Demo from "./pages/Demo";
 import BeingDemo from "./pages/BeingDemo";
+import BeingConversation from "./pages/BeingConversation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/demo" element={<Demo />} />
         <Route path="/being-demo" element={<BeingDemo />} />
+        <Route path="/being" element={<BeingConversation />} />
         <Route path="/journals" element={<ProtectedRoute><Journals /></ProtectedRoute>} />
         <Route path="/journal/:journalId" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/journal" element={<ProtectedRoute><Journals /></ProtectedRoute>} />
