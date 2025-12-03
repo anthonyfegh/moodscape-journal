@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { BeingState, createInitialState, getRenderState } from "@/consciousness";
+import { getRenderState } from "@/consciousness";
 import { BeingCanvas } from "@/components/being/BeingCanvas";
 import { useBeingConversation } from "@/hooks/useBeingConversation";
+import { useBeingStatePersistence } from "@/hooks/useBeingStatePersistence";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,7 +14,7 @@ type ConversationPhase = "idle" | "composing" | "absorbing" | "processing" | "re
  */
 const BeingConversation = () => {
   const { user } = useAuth();
-  const [beingState, setBeingState] = useState<BeingState>(createInitialState());
+  const { beingState, setBeingState, isLoading: isLoadingState } = useBeingStatePersistence(user?.id);
   const [message, setMessage] = useState("");
   const [phase, setPhase] = useState<ConversationPhase>("idle");
   const [fullResponse, setFullResponse] = useState("");

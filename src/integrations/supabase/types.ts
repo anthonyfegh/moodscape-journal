@@ -44,6 +44,48 @@ export type Database = {
         }
         Relationships: []
       }
+      being_state: {
+        Row: {
+          a: number
+          c: number
+          created_at: string
+          h: number
+          i: number
+          id: string
+          k: number
+          u: number
+          updated_at: string
+          user_id: string
+          v: number
+        }
+        Insert: {
+          a?: number
+          c?: number
+          created_at?: string
+          h?: number
+          i?: number
+          id?: string
+          k?: number
+          u?: number
+          updated_at?: string
+          user_id: string
+          v?: number
+        }
+        Update: {
+          a?: number
+          c?: number
+          created_at?: string
+          h?: number
+          i?: number
+          id?: string
+          k?: number
+          u?: number
+          updated_at?: string
+          user_id?: string
+          v?: number
+        }
+        Relationships: []
+      }
       conversation_messages: {
         Row: {
           being_state_at_message: Json | null
