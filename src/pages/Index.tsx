@@ -88,9 +88,12 @@ const IndexContent = () => {
   const typingSpeedIntervalRef = useRef<NodeJS.Timeout>();
   const charCountRef = useRef(0);
   const [hoveredMoment, setHoveredMoment] = useState<LogEntry | null>(null);
+  const [hoveredBeingState, setHoveredBeingState] = useState<BeingState | null>(null);
+  const [isLoadingHoveredState, setIsLoadingHoveredState] = useState(false);
   const [idleTime, setIdleTime] = useState(0); // seconds since last keystroke
   const idleIntervalRef = useRef<NodeJS.Timeout>();
   const lastActivityRef = useRef<number>(Date.now());
+  const hoverAbortRef = useRef<AbortController | null>(null);
 
   // Track idle time - increment every second when not typing
   useEffect(() => {
@@ -227,40 +230,76 @@ const IndexContent = () => {
     return lastLogValence * LAST_LOG_WEIGHT + journalValence * JOURNAL_WEIGHT + weeklyValence * WEEKLY_WEIGHT;
   }, [logEntries, allMoments]);
 
+  // Fetch being state for hovered moment via API
+  const fetchHoveredMomentState = useCallback(async (moment: LogEntry) => {
+    // Cancel any previous request
+    if (hoverAbortRef.current) {
+      hoverAbortRef.current.abort();
+    }
+    
+    const abortController = new AbortController();
+    hoverAbortRef.current = abortController;
+    
+    setIsLoadingHoveredState(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-being-state", {
+        body: {
+          allJournalsMoments: [],
+          currentJournalMoments: [{
+            text: moment.text,
+            emotion: moment.emotion,
+            color: moment.color,
+            timestamp: moment.timestamp.toISOString()
+          }],
+          currentText: moment.text,
+          journalType,
+          weeklyJournalFrequency: 0,
+          currentBeingState: beingState, // Pass current state for context
+        },
+      });
+
+      // Check if request was aborted
+      if (abortController.signal.aborted) return;
+
+      if (!error && data?.beingState) {
+        setHoveredBeingState(data.beingState);
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Error fetching hovered moment state:", err);
+      }
+    } finally {
+      if (!abortController.signal.aborted) {
+        setIsLoadingHoveredState(false);
+      }
+    }
+  }, [journalType, beingState]);
+
+  // Handle moment hover
+  useEffect(() => {
+    if (hoveredMoment) {
+      fetchHoveredMomentState(hoveredMoment);
+    } else {
+      // Cancel any pending request and clear hovered state
+      if (hoverAbortRef.current) {
+        hoverAbortRef.current.abort();
+        hoverAbortRef.current = null;
+      }
+      setHoveredBeingState(null);
+      setIsLoadingHoveredState(false);
+    }
+  }, [hoveredMoment, fetchHoveredMomentState]);
+
   // Blend typing speed into entropy for immediate responsiveness
-  // Also blend hovered moment's emotional state when hovering
+  // Use API-fetched state when hovering a moment
   // Apply idle effects when user stops typing
   const liveBeingState = useMemo(() => {
     if (!beingState) return beingState;
     
-    // When hovering a moment, derive emotional state from the moment's emotion
-    if (hoveredMoment) {
-      // Map emotion to valence and arousal
-      const emotionMap: Record<string, { valence: number; arousal: number }> = {
-        joyful: { valence: 0.8, arousal: 0.7 },
-        happy: { valence: 0.7, arousal: 0.6 },
-        peaceful: { valence: 0.6, arousal: 0.2 },
-        calm: { valence: 0.5, arousal: 0.2 },
-        reflective: { valence: 0.4, arousal: 0.3 },
-        contemplative: { valence: 0.4, arousal: 0.3 },
-        melancholic: { valence: 0.2, arousal: 0.3 },
-        sad: { valence: 0.1, arousal: 0.3 },
-        anxious: { valence: 0.2, arousal: 0.8 },
-        restless: { valence: 0.3, arousal: 0.7 },
-        intense: { valence: 0.3, arousal: 0.9 },
-        angry: { valence: 0.1, arousal: 0.9 },
-      };
-      
-      const emotionValues = emotionMap[hoveredMoment.emotion.toLowerCase()] || { valence: 0.5, arousal: 0.5 };
-      
-      // Return a state blended toward the hovered moment's emotion
-      return {
-        ...beingState,
-        V: emotionValues.valence * 2 - 1, // Map 0-1 to -1 to 1
-        A: emotionValues.arousal,
-        C: 0.8, // High curiosity when exploring past moments
-        U: 0.7, // Increased attachment to memory
-      };
+    // When hovering a moment and we have API-fetched state, use it
+    if (hoveredMoment && hoveredBeingState) {
+      return hoveredBeingState;
     }
     
     // Get valence from detected persona state (current typing mood)
@@ -295,7 +334,7 @@ const IndexContent = () => {
       C: newCuriosity,
       V: newValence,
     };
-  }, [beingState, typingSpeed, hoveredMoment, idleTime, personaState, weightedValence, isTyping]);
+  }, [beingState, typingSpeed, hoveredMoment, hoveredBeingState, idleTime, personaState, weightedValence, isTyping]);
 
   // Load all moments from all journals for baseline being state
   useEffect(() => {

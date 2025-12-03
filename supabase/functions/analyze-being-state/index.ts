@@ -35,6 +35,7 @@ serve(async (req) => {
       currentText,
       journalType,
       weeklyJournalFrequency,
+      currentBeingState,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -58,10 +59,17 @@ serve(async (req) => {
     const weeklyFreq = weeklyJournalFrequency ?? 0;
     const baseEntropyFromFrequency = weeklyFreq <= 1 ? 0.8 : weeklyFreq <= 3 ? 0.5 : weeklyFreq <= 5 ? 0.3 : 0.15;
     
+    // Build current state context if provided (for moment hover analysis)
+    const currentStateContext = currentBeingState 
+      ? `\n\nThe being's current state (for reference, blend this with your analysis):
+K=${currentBeingState.K?.toFixed(2)}, V=${currentBeingState.V?.toFixed(2)}, A=${currentBeingState.A?.toFixed(2)}, 
+H=${currentBeingState.H?.toFixed(2)}, I=${currentBeingState.I?.toFixed(2)}, C=${currentBeingState.C?.toFixed(2)}, U=${currentBeingState.U?.toFixed(2)}`
+      : '';
+    
     // Build dynamic system prompt with entropy context
     const systemPrompt = PROMPTS.analyzeBeingState.system + `
 
-For Entropy (H), START from the base value ${baseEntropyFromFrequency.toFixed(2)} (user journaled ${weeklyFreq}/7 days this week) and adjust based on content chaos/conflict.`;
+For Entropy (H), START from the base value ${baseEntropyFromFrequency.toFixed(2)} (user journaled ${weeklyFreq}/7 days this week) and adjust based on content chaos/conflict.${currentStateContext}`;
 
     const userPrompt = `Historical journal context (baseline):
 ${allMomentsContext || 'No historical data yet'}
