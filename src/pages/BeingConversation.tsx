@@ -41,26 +41,27 @@ const BeingConversation = () => {
     }
   }, [user?.id, loadConversationHistory]);
 
-  // Track the latest being response and trigger typewriter
+  // Track the latest being response content directly
+  const lastBeingMessage = messages.filter(m => m.role === "being").slice(-1)[0];
+  const lastBeingContent = lastBeingMessage?.content || "";
+  
+  // Update fullResponse when being content changes during streaming
   useEffect(() => {
-    const beingMessages = messages.filter(m => m.role === "being");
-    const currentCount = beingMessages.length;
-    
-    // Only process if there's a new being message
-    if (currentCount > beingMessageCount) {
-      const lastBeingMessage = beingMessages[beingMessages.length - 1];
-      if (lastBeingMessage?.content) {
-        console.log("New being message detected:", lastBeingMessage.content.substring(0, 50));
-        setBeingMessageCount(currentCount);
-        setFullResponse(lastBeingMessage.content);
+    if (lastBeingContent && lastBeingContent !== fullResponse) {
+      console.log("Being content updated:", lastBeingContent.substring(0, 50));
+      setFullResponse(lastBeingContent);
+      
+      // Only reset displayed response if this is a NEW message (not just content update)
+      const beingMessages = messages.filter(m => m.role === "being");
+      if (beingMessages.length > beingMessageCount) {
+        setBeingMessageCount(beingMessages.length);
         setDisplayedResponse("");
-        // Ensure we're in responding phase
         if (phase !== "responding") {
           setPhase("responding");
         }
       }
     }
-  }, [messages, beingMessageCount, phase]);
+  }, [lastBeingContent, fullResponse, messages, beingMessageCount, phase]);
 
   // Typewriter effect - word by word
   useEffect(() => {
