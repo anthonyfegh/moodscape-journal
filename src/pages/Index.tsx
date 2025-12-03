@@ -21,6 +21,8 @@ import { getTypeConfig } from "@/lib/journalTypeConfig";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BeingState, createInitialState } from "@/consciousness";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBeingStatePersistence } from "@/hooks/useBeingStatePersistence";
 
 interface AIReflection {
   id: string;
@@ -43,6 +45,8 @@ const IndexContent = () => {
   const { journalId } = useParams();
   const navigate = useNavigate();
   const { setOpen } = useSidebar();
+  const { user } = useAuth();
+  const { beingState, setBeingState, isLoading: isLoadingBeingState } = useBeingStatePersistence(user?.id);
   const [text, setText] = useState("");
   const [journalName, setJournalName] = useState("");
   const [journalType, setJournalType] = useState<"daily" | "themed" | "people" | "event" | "creative">("daily");
@@ -76,7 +80,6 @@ const IndexContent = () => {
   const guidanceTimeoutRef = useRef<NodeJS.Timeout>();
   const [highlightedMomentId, setHighlightedMomentId] = useState<string | null>(null);
   const momentRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-  const [beingState, setBeingState] = useState<BeingState>(createInitialState());
   const beingStateTimeoutRef = useRef<NodeJS.Timeout>();
   const [allMoments, setAllMoments] = useState<Array<{ text: string; emotion: string; color: string; timestamp: string }>>([]);
   const [weeklyJournalFrequency, setWeeklyJournalFrequency] = useState(0);
