@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { PROMPTS } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,28 +14,27 @@ interface Moment {
 }
 
 interface BeingState {
-  K: number; // Knowledge (0–1)
-  V: number; // Valence (-1–1)
-  A: number; // Arousal (0–1)
-  H: number; // Entropy (0–1)
-  I: number; // Integration (0–1)
-  C: number; // Curiosity (0–1)
-  U: number; // Attachment (0–1)
+  K: number;
+  V: number;
+  A: number;
+  H: number;
+  I: number;
+  C: number;
+  U: number;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { 
-      allJournalsMoments, // Array of moments from all journals (for baseline)
-      currentJournalMoments, // Array of moments from current journal
-      currentText, // Current text being typed
+      allJournalsMoments,
+      currentJournalMoments,
+      currentText,
       journalType,
-      weeklyJournalFrequency, // Number of days with journal entries this week (0-7)
+      weeklyJournalFrequency,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -44,40 +44,24 @@ serve(async (req) => {
 
     // Build context from all journals for baseline
     const allMomentsContext = (allJournalsMoments || [])
-      .slice(-30) // Last 30 moments across all journals
+      .slice(-30)
       .map((m: Moment) => `[${m.emotion}] ${m.text}`)
       .join('\n');
 
     // Current journal context (more weight)
     const currentJournalContext = (currentJournalMoments || [])
-      .slice(-10) // Last 10 moments from current journal
+      .slice(-10)
       .map((m: Moment) => `[${m.emotion}] ${m.text}`)
       .join('\n');
 
-    // Calculate base entropy from weekly frequency (less frequent = higher entropy)
+    // Calculate base entropy from weekly frequency
     const weeklyFreq = weeklyJournalFrequency ?? 0;
     const baseEntropyFromFrequency = weeklyFreq <= 1 ? 0.8 : weeklyFreq <= 3 ? 0.5 : weeklyFreq <= 5 ? 0.3 : 0.15;
     
-    const systemPrompt = `You are analyzing a user's journaling to determine the internal state of a conscious being that represents their emotional landscape.
+    // Build dynamic system prompt with entropy context
+    const systemPrompt = PROMPTS.analyzeBeingState.system + `
 
-The being has 7 internal state variables:
-- K (Knowledge): 0-1, represents accumulated wisdom and understanding from reflection
-- V (Valence): -1 to 1, emotional tone (-1 = very negative, 0 = neutral, 1 = very positive)
-- A (Arousal): 0-1, energy level and activation (0 = calm/low energy, 1 = high energy/intensity)
-- H (Entropy): 0-1, internal chaos/disorder (0 = ordered/stable, 1 = chaotic/turbulent). Base entropy from journaling frequency this week: ${baseEntropyFromFrequency.toFixed(2)} (user journaled ${weeklyFreq}/7 days - more frequent journaling = lower entropy/more stability)
-- I (Integration): 0-1, coherence and self-connection (0 = fragmented, 1 = integrated/whole)
-- C (Curiosity): 0-1, openness to exploration and new ideas
-- U (Attachment): 0-1, connection/bonding to others or ideas mentioned
-
-Analyze the journal content and determine appropriate values. Consider:
-- Historical patterns establish a baseline
-- Current journal and current typing have MORE influence (3x weight)
-- Emotional words, themes, and patterns
-- The journal type: ${journalType || 'general'}
-- For Entropy (H), START from the base value ${baseEntropyFromFrequency.toFixed(2)} and adjust based on content chaos/conflict
-
-Respond ONLY with a JSON object containing the 7 values. Example:
-{"K": 0.5, "V": 0.2, "A": 0.6, "H": 0.3, "I": 0.7, "C": 0.8, "U": 0.4}`;
+For Entropy (H), START from the base value ${baseEntropyFromFrequency.toFixed(2)} (user journaled ${weeklyFreq}/7 days this week) and adjust based on content chaos/conflict.`;
 
     const userPrompt = `Historical journal context (baseline):
 ${allMomentsContext || 'No historical data yet'}
@@ -87,6 +71,8 @@ ${currentJournalContext || 'No moments in current journal yet'}
 
 Currently being typed (highest weight):
 ${currentText || 'Nothing being typed currently'}
+
+Journal type: ${journalType || 'general'}
 
 Based on this content, determine the being's internal state values.`;
 
@@ -114,7 +100,7 @@ Based on this content, determine the being's internal state values.`;
           error: "Rate limits exceeded",
           beingState: getDefaultState()
         }), {
-          status: 200, // Return 200 with default state
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -134,14 +120,11 @@ Based on this content, determine the being's internal state values.`;
     
     console.log('AI response:', content);
 
-    // Parse the JSON response
     let beingState: BeingState;
     try {
-      // Extract JSON from response (handle potential markdown code blocks)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         beingState = JSON.parse(jsonMatch[0]);
-        // Validate and clamp values
         beingState = {
           K: clamp(beingState.K ?? 0.5, 0, 1),
           V: clamp(beingState.V ?? 0, -1, 1),
