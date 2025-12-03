@@ -15,13 +15,13 @@ export interface BeingState {
  * Experience vector representing user interaction
  */
 export interface ExperienceVector {
-  novelty?: number;       // 0–1
-  mood?: number;          // -1–1
-  stress?: number;        // 0–1
-  reflection?: number;    // 0–1
-  conflict?: number;      // 0–1
+  novelty?: number; // 0–1
+  mood?: number; // -1–1
+  stress?: number; // 0–1
+  reflection?: number; // 0–1
+  conflict?: number; // 0–1
   vulnerability?: number; // 0–1
-  consistency?: number;   // 0–1
+  consistency?: number; // 0–1
 }
 
 /**
@@ -38,11 +38,11 @@ export interface InternalAction {
  * Normalized render state for visual output
  */
 export interface RenderState {
-  coreRadius: number;        // based on K and I
-  entropyLevel: number;      // mapped from H
-  colorHue: number;          // mapped from V
-  glow: number;              // mapped from A
-  particleActivity: number;  // mapped from C
+  coreRadius: number; // based on K and I
+  entropyLevel: number; // mapped from H
+  colorHue: number; // mapped from V
+  glow: number; // mapped from A
+  particleActivity: number; // mapped from C
   connectionDensity: number; // mapped from U
 }
 
@@ -50,13 +50,13 @@ export interface RenderState {
  * Initialize a default being state
  */
 export const createInitialState = (): BeingState => ({
-  K: 0.5,
+  K: 0.0,
   V: 0.0,
-  A: 0.3,
-  H: 0.4,
-  I: 0.5,
-  C: 0.6,
-  U: 0.3,
+  A: 0.0,
+  H: 0.0,
+  I: 0.0,
+  C: 0.0,
+  U: 0.0,
 });
 
 /**
