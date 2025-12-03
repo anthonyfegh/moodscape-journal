@@ -23,6 +23,7 @@ const BeingConversation = () => {
   const [beingMessageCount, setBeingMessageCount] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typewriterRef = useRef<NodeJS.Timeout | null>(null);
+  const displayedWordIndexRef = useRef(0);
   
   const {
     messages,
@@ -56,6 +57,7 @@ const BeingConversation = () => {
       if (beingMessages.length > beingMessageCount) {
         setBeingMessageCount(beingMessages.length);
         setDisplayedResponse("");
+        displayedWordIndexRef.current = 0; // Reset word index for new message
         if (phase !== "responding") {
           setPhase("responding");
         }
@@ -63,37 +65,41 @@ const BeingConversation = () => {
     }
   }, [lastBeingContent, fullResponse, messages, beingMessageCount, phase]);
 
-  // Typewriter effect - word by word
+  // Typewriter effect - continues from where it left off
   useEffect(() => {
     if (!fullResponse || phase !== "responding") return;
     
     const words = fullResponse.split(" ");
-    let currentIndex = 0;
     
     // Clear any existing typewriter
     if (typewriterRef.current) {
       clearInterval(typewriterRef.current);
     }
     
-    typewriterRef.current = setInterval(() => {
-      if (currentIndex < words.length) {
-        setDisplayedResponse(words.slice(0, currentIndex + 1).join(" "));
-        currentIndex++;
-      } else {
-        if (typewriterRef.current) {
-          clearInterval(typewriterRef.current);
+    // If we already have more words, continue immediately
+    if (displayedWordIndexRef.current < words.length) {
+      typewriterRef.current = setInterval(() => {
+        if (displayedWordIndexRef.current < words.length) {
+          displayedWordIndexRef.current++;
+          setDisplayedResponse(words.slice(0, displayedWordIndexRef.current).join(" "));
+        } else {
+          if (typewriterRef.current) {
+            clearInterval(typewriterRef.current);
+          }
+          // Only transition to reflecting if streaming is done (not loading)
+          if (!isLoading) {
+            setPhase("reflecting");
+          }
         }
-        // Typewriter done, enter reflecting phase
-        setPhase("reflecting");
-      }
-    }, 80); // Speed: 80ms per word
+      }, 80);
+    }
     
     return () => {
       if (typewriterRef.current) {
         clearInterval(typewriterRef.current);
       }
     };
-  }, [fullResponse, phase]);
+  }, [fullResponse, phase, isLoading]);
 
   // Phase transitions based on loading state
   useEffect(() => {
