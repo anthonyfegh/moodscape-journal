@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { PROMPTS } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,24 +22,6 @@ serve(async (req) => {
 
     console.log('Analyzing moment mood and color:', momentText?.substring(0, 50), 'Type:', journalType);
 
-    const systemPrompt = `You are an emotional intelligence assistant analyzing journal entries. Analyze the text and provide:
-1. A single-word emotion label (e.g., "joyful", "melancholic", "peaceful", "anxious", "reflective", "excited", "lonely", "grateful", "angry", "hopeful")
-2. A hex color code that represents this emotion
-
-Return ONLY valid JSON with this exact structure: {"emotion": "word", "color": "#hexcode"}
-Choose colors that feel emotionally appropriate - warm colors for positive emotions, cool colors for contemplative ones, etc.`;
-
-    const messages = [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      {
-        role: 'user',
-        content: momentText
-      }
-    ];
-
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,7 +30,10 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages,
+        messages: [
+          { role: 'system', content: PROMPTS.analyzeMoment.system },
+          { role: 'user', content: momentText }
+        ],
         temperature: 0.7,
       }),
     });
@@ -81,7 +67,7 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
     try {
       let raw = typeof content === 'string' ? content.trim() : '';
 
-      // Strip markdown-style code fences like ```json ... ```
+      // Strip markdown-style code fences
       if (raw.startsWith('```')) {
         const firstNewline = raw.indexOf('\n');
         if (firstNewline !== -1) {
@@ -94,7 +80,7 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
 
       raw = raw.trim();
 
-      // As a fallback, try to extract the first JSON object from the string
+      // Try to extract the first JSON object from the string
       if (!raw.startsWith('{')) {
         const match = raw.match(/\{[\s\S]*\}/);
         if (match) {
@@ -105,7 +91,6 @@ Choose colors that feel emotionally appropriate - warm colors for positive emoti
       analysis = JSON.parse(raw);
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
-      // Fallback to default values
       analysis = { emotion: 'contemplative', color: '#fbbf24' };
     }
 

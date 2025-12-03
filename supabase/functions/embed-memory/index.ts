@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PROMPTS } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +26,7 @@ serve(async (req) => {
 
     console.log(`Creating memory node for moment: ${momentId}`);
 
-    // Extract metadata using AI (embedding not available on Lovable AI gateway)
+    // Extract metadata using AI
     const metadataResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -35,22 +36,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          {
-            role: "system",
-            content: `You are analyzing a journal entry to extract emotional and thematic metadata. Return a JSON object with:
-- emotional_tone: single word describing the dominant emotion (e.g., "hopeful", "anxious", "grateful", "conflicted")
-- topics: array of 1-5 key topics/themes (e.g., ["work", "relationships", "self-doubt"])
-- people_mentioned: array of names of people mentioned (empty if none)
-- relevance_to_self: float 0-1, how personally meaningful/introspective is this entry
-- unresolved_conflict: float 0-1, how much unresolved tension or conflict is present
-- curiosity_triggers: array of questions or interests the writer seems to be exploring
-
-Respond ONLY with valid JSON, no markdown.`
-          },
-          {
-            role: "user",
-            content: momentText
-          }
+          { role: "system", content: PROMPTS.embedMemory.system },
+          { role: "user", content: momentText }
         ],
       }),
     });
@@ -78,7 +65,7 @@ Respond ONLY with valid JSON, no markdown.`
       console.log("Metadata extraction failed, using defaults");
     }
 
-    // Store memory node in database (without embedding for now)
+    // Store memory node in database
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -88,7 +75,6 @@ Respond ONLY with valid JSON, no markdown.`
       .insert({
         user_id: userId,
         moment_id: momentId,
-        // embedding: null - skipping since embedding API not available
         emotional_tone: metadata.emotional_tone,
         topics: metadata.topics || [],
         people_mentioned: metadata.people_mentioned || [],

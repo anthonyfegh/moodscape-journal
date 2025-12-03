@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { PROMPTS } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,22 +22,6 @@ serve(async (req) => {
 
     console.log('Generating entry summary');
 
-    const systemPrompt = `You are a warm, observant companion reading someone's journal entry. Summarize what they wrote using clear bullet points with these sections:
-
-**Emotions Felt:**
-• [List 2-3 key emotions with brief context]
-
-**Actions Taken:**
-• [List significant actions or experiences mentioned]
-
-**Themes & Patterns:**
-• [Identify recurring ideas or underlying patterns]
-
-**What Remains Unspoken:**
-• [Note what feels unresolved or beneath the surface]
-
-Be gentle, emotionally intelligent, and concise. Sound like a thoughtful friend who truly listened.`;
-
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -46,14 +31,8 @@ Be gentle, emotionally intelligent, and concise. Sound like a thoughtful friend 
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: journalText
-          }
+          { role: 'system', content: PROMPTS.summarizeEntry.system },
+          { role: 'user', content: journalText }
         ],
         temperature: 0.7,
       }),

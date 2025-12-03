@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { PROMPTS } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,8 +22,6 @@ serve(async (req) => {
 
     console.log('Generating guidance for journal type:', journalType);
 
-    const systemPrompt = `You are a thoughtful journaling companion observing someone's writing. Read their journal and offer ONE gentle question or brief guidance in exactly 15 words or less. Be warm, curious, and present. Never analyze or summarize - just offer a soft nudge or question that helps them go deeper.`;
-
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -32,14 +31,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: systemPrompt
-          },
-          {
-            role: 'user',
-            content: journalText
-          }
+          { role: 'system', content: PROMPTS.generateGuidance.system },
+          { role: 'user', content: journalText }
         ],
         temperature: 0.7,
       }),
