@@ -125,41 +125,55 @@ export const useBeingConversation = (userId: string | undefined, beingState: Bei
       const decoder = new TextDecoder();
       let beingContent = "";
       let textBuffer = "";
+      let streamDone = false;
 
-      while (true) {
+      const processLine = (line: string) => {
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (line.startsWith(":") || line.trim() === "") return;
+        if (!line.startsWith("data: ")) return;
+
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") {
+          streamDone = true;
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const deltaContent = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (deltaContent) {
+            beingContent += deltaContent;
+            setMessages(prev => prev.map(m => 
+              m.id === beingMessageId 
+                ? { ...m, content: beingContent }
+                : m
+            ));
+          }
+        } catch (e) {
+          console.log("Parse error (likely incomplete JSON):", e);
+        }
+      };
+
+      while (!streamDone) {
         const { done, value } = await reader.read();
         if (done) break;
 
         textBuffer += decoder.decode(value, { stream: true });
 
+        // Process complete lines
         let newlineIndex: number;
         while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
+          const line = textBuffer.slice(0, newlineIndex);
           textBuffer = textBuffer.slice(newlineIndex + 1);
+          processLine(line);
+          if (streamDone) break;
+        }
+      }
 
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const deltaContent = parsed.choices?.[0]?.delta?.content;
-            if (deltaContent) {
-              beingContent += deltaContent;
-              setMessages(prev => prev.map(m => 
-                m.id === beingMessageId 
-                  ? { ...m, content: beingContent }
-                  : m
-              ));
-            }
-          } catch {
-            // Incomplete JSON, will be handled in next iteration
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
+      // Final flush - process any remaining content
+      if (textBuffer.trim()) {
+        for (const line of textBuffer.split("\n")) {
+          if (line.trim()) processLine(line);
         }
       }
 
